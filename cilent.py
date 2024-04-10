@@ -1,8 +1,14 @@
 from tkinter import messagebox
 import customtkinter  # <- import the CustomTkinter module
-from PIL import Image, ImageTk
+import socket
+import random
+
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
+
+SERVER_HOST = '127.0.0.1'
+SERVER_PORT = 1234
+
 root = customtkinter.CTk()
 root.geometry("850x600")
 root.title("TikTacToe")
@@ -10,6 +16,8 @@ root.resizable(False, False)
 options = ["HUMAN","COMUTER"]
 clicked = True
 count = 0  
+
+
 class Game_window:
     def __init__(self):
         gamewindow = customtkinter.CTkToplevel()
@@ -214,9 +222,35 @@ def enter_game():
         messagebox.showerror("Error" ,"UserName cannot be empty")
         root.mainloop()
 
+    #else withdraws the old window and calls Game_Window Class
     else:
         root.withdraw()
+
+                #Binding  server to Host and Port
+        try:
+            socket.bind((ipAddress,portNum))
+            print(f"Connectecd to server({SERVER_HOST}, {SERVER_PORT}) with client({ipAddress}, {portNum})")
+        except:
+            print(f"Unable to bind to {ipAddress} and port {ipAddress}")
+
         c1=Game_window()
+
+    #Generate a random IPv4 address while keeping the first octet as '127'
+def generate_random_ipv4_address():
+    octets = ['127']
+    for i in range(1, 4):
+        octets.append(str(random.randint(0, 255)))
+    return '.'.join(octets)
+# Generate a random integer between 1024 and 65535
+def generate_random_port_number():
+    port_number = random.randint(1024, 65535)
+    return port_number
+
+#creating client-side socket and setting ipAddr + portNum
+socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+ipAddress = generate_random_ipv4_address()
+portNum = generate_random_port_number()
+
 #creation of userFrame
 root.userName_frame = customtkinter.CTkFrame(root,)
 root.userName_frame.grid(row=3, column=1, padx=150, pady=200)
