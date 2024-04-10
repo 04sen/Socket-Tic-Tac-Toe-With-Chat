@@ -1,6 +1,6 @@
 from tkinter import messagebox
 import customtkinter  # <- import the CustomTkinter module
-
+from PIL import Image, ImageTk
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
 root = customtkinter.CTk()
@@ -8,9 +8,11 @@ root.geometry("850x600")
 root.title("TikTacToe")
 root.resizable(False, False)
 options = ["HUMAN","COMUTER"]
-
+#defining the image for the buttons
+add_cross_image = ImageTk.PhotoImage(Image.open("assets/cross.png").resize((20, 20)))
 #button clicked function
 def b_click(b):
+    customtkinter.CTkButton.config(b, text="X", image=add_cross_image, state="disabled")
     pass
 
 def enter_game():
