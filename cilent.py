@@ -9,6 +9,10 @@ root.title("TikTacToe")
 root.resizable(False, False)
 options = ["HUMAN","COMUTER"]
 
+#button clicked function
+def b_click(b):
+    pass
+
 def enter_game():
     username = root.userName_entry.get()
 
@@ -23,6 +27,48 @@ def enter_game():
         gamewindow.geometry("850x600")
         gamewindow.title("TikTacToe")
         gamewindow.resizable(False, False)
+
+        #making grid frame
+        gamewindow.frame = customtkinter.CTkFrame(gamewindow)
+        gamewindow.frame.grid(row=3, column=3, padx=150, pady=50)
+
+        #building buttons
+        b1 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                     hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b1))
+        b1.grid(row=0,column=0)
+
+        b2 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                     hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b2))
+        b2.grid(row=0,column=1)
+
+        b3 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                     hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b3))
+        b3.grid(row=0,column=2)
+
+        b4 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                     hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b4))
+        b4.grid(row=1,column=0)
+
+        b5 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                     hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b5))
+        b5.grid(row=1,column=1)
+
+        b6 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                     hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b6))
+        b6.grid(row=1,column=2)
+
+        b7 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                     hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b7))
+        b7.grid(row=2,column=0)
+
+        b8 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                     hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b8))
+        b8.grid(row=2,column=1)
+
+        b9 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                     hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b9))
+        b9.grid(row=2,column=2)
+
       
 #creation of userFrame
 root.userName_frame = customtkinter.CTkFrame(root,)
