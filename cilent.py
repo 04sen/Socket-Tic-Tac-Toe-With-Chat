@@ -73,119 +73,119 @@ class Game_window:
             winner = False
             #horizontal
             if b1.cget("text") == "X" and b2.cget("text") == "X" and b3.cget("text") == "X":
-                b1.configure(fg_color=("green","yellow"))
-                b2.configure(fg_color="red")
-                b3.configure(fg_color="red")
+                b1.configure(fg_color="green")
+                b2.configure(fg_color="green")
+                b3.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player X is the winner")
                 disable_all_buttons()
             elif b4.cget("text") == "X" and b5.cget("text") == "X" and b6.cget("text") == "X":
-                b4.configure(fg_color="red")
-                b5.configure(fg_color="red")
-                b6.configure(fg_color="red")
+                b4.configure(fg_color="green")
+                b5.configure(fg_color="green")
+                b6.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player X is the winner")
                 disable_all_buttons()
             elif b7.cget("text") == "X" and b8.cget("text") == "X" and b9.cget("text") == "X":
-                b7.configure(fg_color="red")
-                b8.configure(fg_color="red")
-                b9.configure(fg_color="red")
+                b7.configure(fg_color="green")
+                b8.configure(fg_color="green")
+                b9.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player X is the winner")
                 disable_all_buttons()
             #vertical
             elif b1.cget("text") == "X" and b4.cget("text") == "X" and b7.cget("text") == "X":
-                b1.configure(fg_color="red")
-                b4.configure(fg_color="red")
-                b7.configure(fg_color="red")
+                b1.configure(fg_color="green")
+                b4.configure(fg_color="green")
+                b7.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player X is the winner")
                 disable_all_buttons()
             elif b2.cget("text") == "X" and b5.cget("text") == "X" and b8.cget("text") == "X":
-                b2.configure(fg_color="red")
-                b5.configure(fg_color="red")
-                b8.configure(fg_color="red")
+                b2.configure(fg_color="green")
+                b5.configure(fg_color="green")
+                b8.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player X is the winner")
                 disable_all_buttons()
             elif b3.cget("text") == "X" and b6.cget("text") == "X" and b9.cget("text") == "X":
-                b3.configure(fg_color="red")
-                b6.configure(fg_color="red")
-                b9.configure(fg_color="red")
+                b3.configure(fg_color="green")
+                b6.configure(fg_color="green")
+                b9.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player X is the winner")
                 disable_all_buttons()
             #diagnols
             elif b1.cget("text") == "X" and b5.cget("text") == "X" and b9.cget("text") == "X":
-                b1.configure(fg_color="red")
-                b5.configure(fg_color="red")
-                b9.configure(fg_color="red")
+                b1.configure(fg_color="green")
+                b5.configure(fg_color="green")
+                b9.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player X is the winner")
                 disable_all_buttons()
             elif b3.cget("text") == "X" and b5.cget("text") == "X" and b7.cget("text") == "X":
-                b3.configure(fg_color="red")
-                b5.configure(fg_color="red")
-                b7.configure(fg_color="red")
+                b3.configure(fg_color="green")
+                b5.configure(fg_color="green")
+                b7.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player X is the winner")
                 disable_all_buttons()
         #check for O
             elif b1.cget("text") == "O" and b2.cget("text") == "O" and b3.cget("text") == "O":
-                b1.configure(fg_color="red")
-                b2.configure(fg_color="red")
-                b3.configure(fg_color="red")
+                b1.configure(fg_color="green")
+                b2.configure(fg_color="green")
+                b3.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player O is the winner")
                 disable_all_buttons()
             elif b4.cget("text") == "O" and b5.cget("text") == "O" and b6.cget("text") == "O":
-                b4.configure(fg_color="red")
-                b5.configure(fg_color="red")
-                b6.configure(fg_color="red")
+                b4.configure(fg_color="green")
+                b5.configure(fg_color="green")
+                b6.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player O is the winner")
                 disable_all_buttons()
             elif b7.cget("text") == "O" and b8.cget("text") == "O" and b9.cget("text") == "O":
-                b7.configure(fg_color="red")
-                b8.configure(fg_color="red")
-                b9.configure(fg_color="red")
+                b7.configure(fg_color="green")
+                b8.configure(fg_color="green")
+                b9.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player O is the winner")
                 disable_all_buttons()
             #vertical
             elif b1.cget("text") == "O" and b4.cget("text") == "O" and b7.cget("text") == "O":
-                b1.configure(fg_color="red")
-                b4.configure(fg_color="red")
-                b7.configure(fg_color="red")
+                b1.configure(fg_color="green")
+                b4.configure(fg_color="green")
+                b7.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player O is the winner")
                 disable_all_buttons()
             elif b2.cget("text") == "O" and b5.cget("text") == "O" and b8.cget("text") == "O":
-                b2.configure(fg_color="red")
-                b5.configure(fg_color="red")
-                b8.configure(fg_color="red")
+                b2.configure(fg_color="green")
+                b5.configure(fg_color="green")
+                b8.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player O is the winner")
                 disable_all_buttons()
             elif b3.cget("text") == "O" and b6.cget("text") == "O" and b9.cget("text") == "O":
-                b3.configure(fg_color="red")
-                b6.configure(fg_color="red")
-                b9.configure(fg_color="red")
+                b3.configure(fg_color="green")
+                b6.configure(fg_color="green")
+                b9.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player O is the winner")
                 disable_all_buttons()
             #diagnols
             elif b1.cget("text") == "O" and b5.cget("text") == "O" and b9.cget("text") == "O":
-                b1.configure(fg_color="red")
-                b5.configure(fg_color="red")
-                b9.configure(fg_color="red")
+                b1.configure(fg_color="green")
+                b5.configure(fg_color="green")
+                b9.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player O is the winner")
                 disable_all_buttons()
             elif b3.cget("text") == "O" and b5.cget("text") == "O" and b7.cget("text") == "O":
-                b3.configure(fg_color="red")
-                b5.configure(fg_color="red")
-                b7.configure(fg_color="red")
+                b3.configure(fg_color="green")
+                b5.configure(fg_color="green")
+                b7.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player O is the winner")
                 disable_all_buttons()
