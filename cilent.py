@@ -90,7 +90,7 @@ def enter_game():
         b9.grid(row=2,column=2)
 
         br = customtkinter.CTkButton(gamewindow, text="Restart")
-        br.place(x=400, y=500)
+        br.place(x=150, y=375)
 #creation of userFrame
 root.userName_frame = customtkinter.CTkFrame(root,)
 root.userName_frame.grid(row=3, column=1, padx=150, pady=200)
