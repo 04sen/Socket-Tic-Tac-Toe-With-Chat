@@ -26,7 +26,7 @@ def enter_game():
       
 #creation of userFrame
 root.userName_frame = customtkinter.CTkFrame(root,)
-root.userName_frame.grid(row=200, column=100, padx=150, pady=200)
+root.userName_frame.grid(row=3, column=1, padx=150, pady=200)
 #creation of UserName entry where the user enters his/her userName
 root.userName_entry = customtkinter.CTkEntry(master=root.userName_frame, placeholder_text="Enter Username:",width=175, height = 33)
 root.userName_entry.pack(padx=175, pady=5, )
