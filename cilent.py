@@ -8,11 +8,22 @@ root.geometry("850x600")
 root.title("TikTacToe")
 root.resizable(False, False)
 options = ["HUMAN","COMUTER"]
+clicked = True
+count = 0   
 #button clicked function
 def b_click(b):
+    global clicked, count
     
-    pass
-
+    if b.cget("text") == " " and clicked == True:
+        b.configure(text = "X")
+        clicked = False
+        count += 1
+    elif b.cget("text") == " " and clicked == False:
+        b.configure(text = "O")
+        clicked = True
+        count += 1
+    else:
+        messagebox.showerror("Error", "This box has already been selected\nPick another box...")
 def enter_game():
     username = root.userName_entry.get()
 
@@ -78,7 +89,8 @@ def enter_game():
                                     border_color=("white","white"))
         b9.grid(row=2,column=2)
 
-      
+        
+        
 #creation of userFrame
 root.userName_frame = customtkinter.CTkFrame(root,)
 root.userName_frame.grid(row=3, column=1, padx=150, pady=200)
