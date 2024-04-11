@@ -226,12 +226,6 @@ def enter_game():
     else:
         root.withdraw()
 
-                #Binding  server to Host and Port
-        try:
-            socket.bind((ipAddress,portNum))
-            print(f"Connectecd to server({SERVER_HOST}, {SERVER_PORT}) with client({ipAddress}, {portNum})")
-        except:
-            print(f"Unable to bind to {ipAddress} and port {ipAddress}")
 
         c1=Game_window()
 
