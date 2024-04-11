@@ -268,7 +268,9 @@ menu.pack(pady = 5, padx = 175)
 #creation of login Button for the user to login to the system
 root.login_button = customtkinter.CTkButton(master=root.userName_frame, text="Enter", command=enter_game)
 root.login_button.pack(side=customtkinter.LEFT,padx=200, pady=9)
-
-
-
+#creating a label
+label_frame = customtkinter.CTkFrame(root, width=500, height=100)
+label_frame.place(x=150, y=80)
+label = customtkinter.CTkLabel(master=label_frame, text="WELCOME TO Tic Tac Toe the game \n please enter your username to continue to play the game   ",width=500, height=50)
+label.pack()
 root.mainloop()
