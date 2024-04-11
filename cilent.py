@@ -7,17 +7,46 @@ root = customtkinter.CTk()
 root.geometry("850x600")
 root.title("TikTacToe")
 root.resizable(False, False)
-options = ["HUMAN","COMUTER"]
+options = ["HUMAN","COMPUTER"]
 clicked = True
 count = 0  
 class Game_window:
     def __init__(self):
         gamewindow = customtkinter.CTkToplevel()
         gamewindow.geometry("850x600")
-        gamewindow.title("TikTacToe")
+        gamewindow.title("TikTacToe- Welcome {0}".format(root.userName_entry.get()))
         gamewindow.resizable(False, False)
         gamewindow.frame = customtkinter.CTkFrame(gamewindow)
         gamewindow.frame.grid(row=3, column=3, padx=150, pady=50)
+         #creation of message box frame
+        gamewindow.messagebox_frame = customtkinter.CTkFrame(gamewindow)
+        gamewindow.messagebox_frame.place(x=500, y=100)
+        #creation of message box field where all the messages can be seen 
+        textbox = customtkinter.CTkTextbox(gamewindow.messagebox_frame, width=300, height=410)
+        textbox.configure(state=customtkinter.DISABLED)
+        textbox.pack(side=customtkinter.RIGHT, padx=5, pady=5)
+        #creation of online users frame
+        gamewindow.label_frame = customtkinter.CTkFrame(gamewindow)
+        gamewindow.label_frame.place(x=500, y=50)
+        onlineUser = customtkinter.CTkTextbox(gamewindow.label_frame,width=300, height=50,)
+        onlineUser.insert(customtkinter.END,"Online Users:\n")
+        onlineUser.configure(state=customtkinter.DISABLED)
+        onlineUser.pack(side=customtkinter.RIGHT, padx=5 )
+        #creation of entry field
+        gamewindow.entry_frame = customtkinter.CTkFrame(gamewindow)
+        gamewindow.entry_frame.place(x=500, y=520)
+        entry = customtkinter.CTkEntry(gamewindow.entry_frame, width=200, height=50)
+        entry.pack(side=customtkinter.LEFT, padx=5)
+        def send_message():
+            msg = entry.get()
+            textbox.configure(state=customtkinter.NORMAL)
+            textbox.insert(customtkinter.END,"You: "+msg+"\n")
+            textbox.configure(state=customtkinter.DISABLED)
+            entry.delete(0, customtkinter.END)
+        #creation of send button
+        gamewindow.send_button = customtkinter.CTkButton(gamewindow.entry_frame, text="Send",height=50, width=50, command=send_message)
+        gamewindow.send_button.pack(side=customtkinter.RIGHT, padx=5)
+        
         def Make_btn():
             global b1,b2,b3,b4,b5,b6,b7,b8,b9
             global clicked, count
@@ -65,17 +94,8 @@ class Game_window:
         br = customtkinter.CTkButton(gamewindow, text="Restart",command=lambda:Make_btn())
         br.place(x=150, y=375)
         #quit button
-        bq = customtkinter.CTkButton(gamewindow, text="Quit",command=lambda:quit_btn(bq))   
-        bq.place(x=300, y=375)
-            
-        def quit_btn(b):
-            global clicked
-            if clicked == True:
-                root.update()
-                root.deiconify()
-                gamewindow.destroy()
-
-                
+        bq = customtkinter.CTkButton(gamewindow, text="Quit",command= gamewindow.destroy)   ##quit button does not work as intended make a function that brings back root and quits out of the game window
+        bq.place(x=300, y=375)               
         def disable_all_buttons():
             b1.configure(state="disabled")
             b2.configure(state="disabled")
@@ -86,7 +106,6 @@ class Game_window:
             b7.configure(state="disabled")
             b8.configure(state="disabled")
             b9.configure(state="disabled")
-
         #check if won
         def check_winner():
             global winner
@@ -208,8 +227,7 @@ class Game_window:
                 b7.configure(fg_color="green")
                 winner = True
                 messagebox.showinfo("Winner", "Player O is the winner")
-                disable_all_buttons()
-            
+                disable_all_buttons()           
         #button clicked function
         def b_click(b):
             global clicked, count
