@@ -16,6 +16,7 @@ root.resizable(False, False)
 options = ["HUMAN","COMUTER"]
 clicked = True
 count = 0  
+HEADERSIZE = 10
 
 
 class Game_window:
@@ -224,7 +225,8 @@ def enter_game():
 
     #else withdraws the old window and calls Game_Window Class
     else:
-        root.withdraw()
+        connect(root) # <--  Connect to Server
+        root.withdraw() # <-- Withdraw root window
 
 
         c1=Game_window()
@@ -241,10 +243,43 @@ def generate_random_port_number():
     return port_number
 
 #creating client-side socket and setting ipAddr + portNum
-socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 ipAddress = generate_random_ipv4_address()
 portNum = generate_random_port_number()
 
+
+#Binding socket to IP and Port
+try:
+    client.bind((ipAddress,portNum))
+    print(f"Client set to ({ipAddress}, {portNum})")
+except:
+    print(f"Unable to bind to {ipAddress} and port {ipAddress}")
+
+
+#function that is used to connect the client to the server
+def connect(self):
+        
+    #gets the username user and stores in username 
+    self.username = self.userName_entry.get()
+
+
+    self.menuOption = self.menu.get()
+    
+    # try except block
+    try:
+        # Connect to the server
+        client.connect((SERVER_HOST, SERVER_PORT))
+        self.username = f'{len(self.username):<{HEADERSIZE}}' + self.username
+        client.send(bytes(self.username,'utf-8'))
+
+        print("Successfully connected to server")
+        
+    #if the user wasnt able to connect to server then it will show error message
+    except:
+        messagebox.showerror("Unable to connect to server", f"Unable to connect to server {self.HOST} {self.PORT}")
+        root.mainloop()
+
+    
 #creation of userFrame
 root.userName_frame = customtkinter.CTkFrame(root,)
 root.userName_frame.grid(row=3, column=1, padx=150, pady=200)
