@@ -18,44 +18,64 @@ class Game_window:
         gamewindow.resizable(False, False)
         gamewindow.frame = customtkinter.CTkFrame(gamewindow)
         gamewindow.frame.grid(row=3, column=3, padx=150, pady=50)
-        b1 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                            hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b1),border_width=3,border_spacing= 13,
+        def Make_btn():
+            global b1,b2,b3,b4,b5,b6,b7,b8,b9
+            global clicked, count
+            clicked = True
+            count = 0
+            #build our buttons
+            b1 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                                hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b1),border_width=3,border_spacing= 13,
+                                                border_color=("white","white"))
+            b2 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                        hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b2),border_width=3,border_spacing= 13,
+                                        border_color=("white","white"))
+            b3 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                        hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b3),border_width=3,border_spacing= 13,
+                                        border_color=("white","white"))
+            b4 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                        hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b4),border_width=3,border_spacing= 13,
+                                        border_color=("white","white"))
+            b5 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                        hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b5),border_width=3,border_spacing= 13,
+                                        border_color=("white","white"))
+            b6 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                        hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b6),border_width=3,border_spacing= 13,
+                                        border_color=("white","white"))
+            b7 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                        hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b7),border_width=3,border_spacing= 13,
+                                        border_color=("white","white"))
+            b8 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+                                                hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b8),border_width=3,border_spacing= 13,
+                                                border_color=("white","white"))
+            b9 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+            	                                    hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b9),border_width=3,border_spacing= 13,
                                             border_color=("white","white"))
-        b2 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                    hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b2),border_width=3,border_spacing= 13,
-                                    border_color=("white","white"))
-        b3 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                    hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b3),border_width=3,border_spacing= 13,
-                                    border_color=("white","white"))
-        b4 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                    hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b4),border_width=3,border_spacing= 13,
-                                    border_color=("white","white"))
-        b5 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                    hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b5),border_width=3,border_spacing= 13,
-                                    border_color=("white","white"))
-        b6 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                    hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b6),border_width=3,border_spacing= 13,
-                                    border_color=("white","white"))
-        b7 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                    hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b7),border_width=3,border_spacing= 13,
-                                    border_color=("white","white"))
-        b8 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                            hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b8),border_width=3,border_spacing= 13,
-                                            border_color=("white","white"))
-        b9 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                            hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b9),border_width=3,border_spacing= 13,
-                                            border_color=("white","white"))
-        b1.grid(row=0,column=0)
-        b2.grid(row=0,column=1)
-        b3.grid(row=0,column=2)
-        b4.grid(row=1,column=0)
-        b5.grid(row=1,column=1)
-        b6.grid(row=1,column=2)
-        b7.grid(row=2,column=0)
-        b8.grid(row=2,column=1)
-        b9.grid(row=2,column=2)
-        br = customtkinter.CTkButton(gamewindow, text="Restart")
+            b1.grid(row=0,column=0)
+            b2.grid(row=0,column=1)
+            b3.grid(row=0,column=2)
+            b4.grid(row=1,column=0)
+            b5.grid(row=1,column=1)
+            b6.grid(row=1,column=2)
+            b7.grid(row=2,column=0)
+            b8.grid(row=2,column=1)
+            b9.grid(row=2,column=2)
+        Make_btn()
+        #reset button
+        br = customtkinter.CTkButton(gamewindow, text="Restart",command=lambda:Make_btn())
         br.place(x=150, y=375)
+        #quit button
+        bq = customtkinter.CTkButton(gamewindow, text="Quit",command=lambda:quit_btn(bq))   
+        bq.place(x=300, y=375)
+            
+        def quit_btn(b):
+            global clicked
+            if clicked == True:
+                root.update()
+                root.deiconify()
+                gamewindow.destroy()
+
+                
         def disable_all_buttons():
             b1.configure(state="disabled")
             b2.configure(state="disabled")
