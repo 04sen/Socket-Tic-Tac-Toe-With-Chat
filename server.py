@@ -17,6 +17,7 @@ class Server:
         self.activeUsers = []
         self.activeModes = []
         self.HEADERSIZE = 10
+        self.EXIT_STRING = 'a72b20062ec2c47ab2ceb97ac1bee818f8b6c6cb'
         
         #AF_INET: we are going to use IPv4 addresses
         #SOCK_STREAM: using TCP connection
@@ -90,9 +91,22 @@ class Server:
 
             if len(full_msg) - self.HEADERSIZE == msglen:
                 print("Full message recvd")
-                user_msg = (f"{activeUsers[i]} ({activeMode[i]}) : {full_msg[self.HEADERSIZE:]}")
-                print(user_msg)
-                self.send_Messages_to_all(user_msg)
+                message = full_msg[self.HEADERSIZE:]
+                
+                if message == self.EXIT_STRING:
+                    user_msg = (f"{activeUsers[i]} ({activeMode[i]}) has disconnected!")
+                    self.send_Messages_to_all(user_msg)
+                    activeUsers.pop(i)
+                    activeMode.pop(i)
+                    new_msg = True
+                    full_msg = ''
+                    i = 0
+                    return
+
+                else:
+                    user_msg = (f"{activeUsers[i]} ({activeMode[i]}) : {message}")
+                    print(user_msg)
+                    self.send_Messages_to_all(user_msg)
                 new_msg = True
                 full_msg = ''
                 i = 0
@@ -156,11 +170,15 @@ class Server:
 
             if len(full_msg) - self.HEADERSIZE == msglen:
                 print("Full message recvd")
-                self.activeModes.append((full_msg[self.HEADERSIZE:]))
-                user_mode_msg = (f"On Mode: {full_msg[self.HEADERSIZE:]}")
+                menu = full_msg[self.HEADERSIZE:]
+                self.activeModes.append(menu)
+                user_mode_msg = (f"On Mode: {menu}")
                 print(user_mode_msg)
                 new_msg = True
                 full_msg = ''
+
+            send_msg = f'{username} joined on {menu} Mode!'
+            self.send_Messages_to_all(send_msg)
 
             break
             

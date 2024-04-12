@@ -19,6 +19,7 @@ options = ["HUMAN","COMPUTER"]
 clicked = True
 count = 0  
 HEADERSIZE = 10
+EXIT_STRING = 'a72b20062ec2c47ab2ceb97ac1bee818f8b6c6cb'
 
 #creating client-side socket and setting ipAddr + portNum
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -259,14 +260,30 @@ class Game_window:
                 messagebox.showerror("Error", "This box has already been selected\nPick another box...")
 
         def quit_game():
+            disconnect(client)
+            print('disconnected from server')
             self.gamewindow.destroy()
             root.destroy()
-            disconnect(client)
 
-        def disconnect(client):
             client.shutdown(socket.SHUT_RDWR)
             client.close()
-            print('disconnected from server')
+           
+           
+            
+
+        def disconnect(client):
+            root.username = root.userName_entry.get()
+            exit_msg = EXIT_STRING
+
+            root.username = f'{len(root.username):<{HEADERSIZE}}' + root.username
+            client.send(bytes(root.username,'utf-8'))
+
+            time.sleep(0.1)
+            
+            exit_msg = f'{len(exit_msg):<{HEADERSIZE}}' + exit_msg
+            client.send(bytes(exit_msg,'utf-8'))
+
+            
 
 #function send_message sends the message to all other clients
 def send_message(self,client):
