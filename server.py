@@ -66,7 +66,7 @@ class Server:
 
             
             
-     #Function to handle client
+    #Function to handle client
     def handle_client(self,client, ):
 
         full_msg = ''
@@ -74,8 +74,8 @@ class Server:
         
         #server will listen for client userName
         while True:
-            #Receives upto 16 byte of data
-            username = client.recv(16)
+            #Receives upto 1024 byte of data
+            username = client.recv(1024)
 
             if new_msg:
                 print(f"new message length: {username[:self.HEADERSIZE]}")
@@ -91,15 +91,9 @@ class Server:
                 print(user_joined_msg)
                 new_msg = True
                 full_msg = ''
-
-
-            #UNEXPECTED ERROR! 
-            #PASSES HUMAN VALUE INTO activeMode List 
-            #BUTTTTTTTTTTT PASSES COMPUTER VALUE INTO activeClients LIST ABOVE??????
-
             
-            #Receives upto 16 byte of data
-            menu = client.recv(16)
+            #Receives upto 20 byte of data since only 2 options are available
+            menu = client.recv(20)
 
             if new_msg:
                 print(f"new message length: {menu[:self.HEADERSIZE]}")
@@ -111,10 +105,12 @@ class Server:
             if len(full_msg) - self.HEADERSIZE == msglen:
                 print("Full message recvd")
                 self.activeModes.append((full_msg[self.HEADERSIZE:],client))
-                us = (f"On Mode: {full_msg[self.HEADERSIZE:]}")
-                print(us)
+                user_mode_msg = (f"On Mode: {full_msg[self.HEADERSIZE:]}")
+                print(user_mode_msg)
                 new_msg = True
                 full_msg = ''
+
+            break
             
         #threading.Thread(target=self.listen_for_msg, args=(client, username,  )).start()
             
