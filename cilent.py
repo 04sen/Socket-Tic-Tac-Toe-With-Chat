@@ -329,8 +329,8 @@ root.userName_frame.grid(row=3, column=1, padx=150, pady=200)
 root.userName_entry = customtkinter.CTkEntry(master=root.userName_frame, placeholder_text="Enter Username:",width=175, height = 33)
 root.userName_entry.pack(padx=175, pady=5, )
 
-menu = customtkinter.CTkComboBox(master=root.userName_frame, values=options)
-menu.pack(pady = 5, padx = 175)
+root.menu = customtkinter.CTkComboBox(master=root.userName_frame, values=options)
+root.menu.pack(pady = 5, padx = 175)
 
 #creation of login Button for the user to login to the system
 root.login_button = customtkinter.CTkButton(master=root.userName_frame, text="Enter", command=enter_game)
