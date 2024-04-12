@@ -92,6 +92,12 @@ class Server:
                 new_msg = True
                 full_msg = ''
 
+
+            #UNEXPECTED ERROR! 
+            #PASSES HUMAN VALUE INTO activeMode List 
+            #BUTTTTTTTTTTT PASSES COMPUTER VALUE INTO activeClients LIST ABOVE??????
+
+            
             #Receives upto 16 byte of data
             menu = client.recv(16)
 
