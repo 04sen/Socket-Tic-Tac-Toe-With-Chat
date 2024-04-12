@@ -1,8 +1,15 @@
 from tkinter import messagebox
 import customtkinter  # <- import the CustomTkinter module
-from PIL import Image, ImageTk
+import socket
+import random
+import time
+
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
+
+SERVER_HOST = '127.0.0.1'
+SERVER_PORT = 1234
+
 root = customtkinter.CTk()
 root.geometry("850x600")
 root.title("TikTacToe")
@@ -10,6 +17,9 @@ root.resizable(False, False)
 options = ["HUMAN","COMPUTER"]
 clicked = True
 count = 0  
+HEADERSIZE = 10
+
+
 class Game_window:
     def __init__(self):
         gamewindow = customtkinter.CTkToplevel()
@@ -252,9 +262,66 @@ def enter_game():
         messagebox.showerror("Error" ,"UserName cannot be empty")
         root.mainloop()
 
+    #else withdraws the old window and calls Game_Window Class
     else:
-        root.withdraw()
+        connect(root) # <--  Connect to Server
+        root.withdraw() # <-- Withdraw root window
+
+
         c1=Game_window()
+
+    #Generate a random IPv4 address while keeping the first octet as '127'
+def generate_random_ipv4_address():
+    octets = ['127']
+    for i in range(1, 4):
+        octets.append(str(random.randint(0, 255)))
+    return '.'.join(octets)
+# Generate a random integer between 1024 and 65535
+def generate_random_port_number():
+    port_number = random.randint(1024, 65535)
+    return port_number
+
+#creating client-side socket and setting ipAddr + portNum
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+ipAddress = generate_random_ipv4_address()
+portNum = generate_random_port_number()
+
+
+#Binding socket to IP and Port
+try:
+    client.bind((ipAddress,portNum))
+    print(f"Client set to ({ipAddress}, {portNum})")
+except:
+    print(f"Unable to bind to {ipAddress} and port {ipAddress}")
+
+
+#function that is used to connect the client to the server
+def connect(self):
+        
+    #gets the username user and stores in username 
+    self.username = self.userName_entry.get()
+
+
+    self.menuOption = self.menu.get()
+    
+    # try except block
+    try:
+        # Connect to the server
+        client.connect((SERVER_HOST, SERVER_PORT))
+        self.username = f'{len(self.username):<{HEADERSIZE}}' + self.username
+        client.send(bytes(self.username,'utf-8'))
+        time.sleep(0.1)
+        self.menuOption = f'{len(self.menuOption):<{HEADERSIZE}}' + self.menuOption
+        client.send(bytes(self.menuOption,'utf-8'))
+
+        print("Successfully connected to server")
+        
+    #if the user wasnt able to connect to server then it will show error message
+    except:
+        messagebox.showerror("Unable to connect to server", f"Unable to connect to server {self.HOST} {self.PORT}")
+        root.mainloop()
+
+    
 #creation of userFrame
 root.userName_frame = customtkinter.CTkFrame(root,)
 root.userName_frame.grid(row=3, column=1, padx=150, pady=200)
@@ -262,8 +329,8 @@ root.userName_frame.grid(row=3, column=1, padx=150, pady=200)
 root.userName_entry = customtkinter.CTkEntry(master=root.userName_frame, placeholder_text="Enter Username:",width=175, height = 33)
 root.userName_entry.pack(padx=175, pady=5, )
 
-menu = customtkinter.CTkComboBox(master=root.userName_frame, values=options)
-menu.pack(pady = 5, padx = 175)
+root.menu = customtkinter.CTkComboBox(master=root.userName_frame, values=options)
+root.menu.pack(pady = 5, padx = 175)
 
 #creation of login Button for the user to login to the system
 root.login_button = customtkinter.CTkButton(master=root.userName_frame, text="Enter", command=enter_game)
