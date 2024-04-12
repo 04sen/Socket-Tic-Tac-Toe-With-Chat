@@ -2,6 +2,7 @@ from tkinter import messagebox
 import customtkinter  # <- import the CustomTkinter module
 import socket
 import random
+import time
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
@@ -271,6 +272,9 @@ def connect(self):
         client.connect((SERVER_HOST, SERVER_PORT))
         self.username = f'{len(self.username):<{HEADERSIZE}}' + self.username
         client.send(bytes(self.username,'utf-8'))
+        time.sleep(0.1)
+        self.menuOption = f'{len(self.menuOption):<{HEADERSIZE}}' + self.menuOption
+        client.send(bytes(self.menuOption,'utf-8'))
 
         print("Successfully connected to server")
         

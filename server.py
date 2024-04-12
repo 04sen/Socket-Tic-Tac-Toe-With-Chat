@@ -69,11 +69,11 @@ class Server:
      #Function to handle client
     def handle_client(self,client, ):
 
+        full_msg = ''
+        new_msg = True
+        
         #server will listen for client userName
         while True:
-            full_msg = ''
-            new_msg = True
-
             #Receives upto 16 byte of data
             username = client.recv(16)
 
@@ -89,6 +89,24 @@ class Server:
                 self.activeClients.append((full_msg[self.HEADERSIZE:],client))
                 user_joined_msg = (f"{full_msg[self.HEADERSIZE:]}: joined!")
                 print(user_joined_msg)
+                new_msg = True
+                full_msg = ''
+
+            #Receives upto 16 byte of data
+            menu = client.recv(16)
+
+            if new_msg:
+                print(f"new message length: {menu[:self.HEADERSIZE]}")
+                msglen = int(menu[:self.HEADERSIZE])
+                new_msg = False
+
+            full_msg += menu.decode("utf=8")
+
+            if len(full_msg) - self.HEADERSIZE == msglen:
+                print("Full message recvd")
+                self.activeModes.append((full_msg[self.HEADERSIZE:],client))
+                us = (f"On Mode: {full_msg[self.HEADERSIZE:]}")
+                print(us)
                 new_msg = True
                 full_msg = ''
             
