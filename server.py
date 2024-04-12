@@ -1,6 +1,7 @@
 #Import necessary library socket.io and threads
 import socket
 import threading
+import time
 
 #class def for Server
 class Server:
@@ -13,6 +14,8 @@ class Server:
         self.PORT = 1234
         self.LIMIT = 20
         self.activeClients = []
+        self.activeUsers = []
+        self.activeModes = []
         self.HEADERSIZE = 10
         
         #AF_INET: we are going to use IPv4 addresses
@@ -36,41 +39,88 @@ class Server:
             threading.Thread(target=self.handle_client(client,)).start()
             
     
-    """   #listen_fro_msg_implentation
-    def listen_for_msg(self, client, username):
+    #listen_fro_msg_implentation
+    def listen_for_msg(self, client, activeUsers, activeMode):
+
+        full_msg = ''
+        new_msg = True
+        i = 0
         
         #runs in an infinite while loop to keep on listening for messages sent by clients
         while True:
-            #Receives upto 1024 byte of data and decodes using utf-8
-            response = client.recv(1024).decode('utf-8')
-            
-            #If message is not empty it will be sent to all other clients
-            if response != '':
-                #if response is an integer
-                if isinstance(response,int):
-                    self.tictactoe(response) 
+            #Receives upto 1024 byte of data
+            username = client.recv(1024)
 
-                final_msg = username + ': ' + response
-                self.send_Messages_to_all(final_msg)
+            if new_msg:
+                print(f"new message length: {username[:self.HEADERSIZE]}")
+                msglen = int(username[:self.HEADERSIZE])
+                new_msg = False
+
+            full_msg += username.decode("utf=8")
+
+            if len(full_msg) - self.HEADERSIZE == msglen:
+                print("Full message recvd")
+                username = full_msg[self.HEADERSIZE:]
+                print(username)
+                
+                for user in activeUsers:
+                    if user == username:
+                        print('found')
+                        break
+                    elif i == 50:
+                        print('exit')
+                        break
+                    i = i + 1
+                
+                print(activeUsers)
+                print(i)
+
+                new_msg = True
+                full_msg = ''
+            
+            #Receives upto 1024 byte of data and decodes using utf-8
+            message = client.recv(1024)
+
+            if new_msg:
+                print(f"new message length: {message[:self.HEADERSIZE]}")
+                msglen = int(message[:self.HEADERSIZE])
+                new_msg = False
+
+            full_msg += message.decode("utf=8")
+
+            if len(full_msg) - self.HEADERSIZE == msglen:
+                print("Full message recvd")
+                user_msg = (f"{activeUsers[i]} ({activeMode[i]}) : {full_msg[self.HEADERSIZE:]}")
+                print(user_msg)
+                self.send_Messages_to_all(user_msg)
+                new_msg = True
+                full_msg = ''
+                i = 0
+                
             
             #else will prompt that message from client is empty
             else:
                 print("The message sent from client {username} is empty")
-                break"""
+                break
             
     #function to send message to all clients connected to the server
-    """def send_Messages_to_all(self,message):
+    def send_Messages_to_all(self,message):
         print(message)
         for user in self.activeClients:
-            self.send_message_to_client(user[1], message)"""
-
+            self.send_message_to_client(user[1], message)
             
             
+        #function to send message to a single client
+    def send_message_to_client(self,client,message):
+        client.sendall(message.encode('utf-8'))
+    
     #Function to handle client
     def handle_client(self,client, ):
 
         full_msg = ''
         new_msg = True
+
+        
         
         #server will listen for client userName
         while True:
@@ -86,8 +136,10 @@ class Server:
 
             if len(full_msg) - self.HEADERSIZE == msglen:
                 print("Full message recvd")
-                self.activeClients.append((full_msg[self.HEADERSIZE:],client))
-                user_joined_msg = (f"{full_msg[self.HEADERSIZE:]}: joined!")
+                username = full_msg[self.HEADERSIZE:]
+                self.activeClients.append((username,client))
+                self.activeUsers.append(username)
+                user_joined_msg = (f"{username}: joined!")
                 print(user_joined_msg)
                 new_msg = True
                 full_msg = ''
@@ -104,7 +156,7 @@ class Server:
 
             if len(full_msg) - self.HEADERSIZE == msglen:
                 print("Full message recvd")
-                self.activeModes.append((full_msg[self.HEADERSIZE:],client))
+                self.activeModes.append((full_msg[self.HEADERSIZE:]))
                 user_mode_msg = (f"On Mode: {full_msg[self.HEADERSIZE:]}")
                 print(user_mode_msg)
                 new_msg = True
@@ -112,7 +164,7 @@ class Server:
 
             break
             
-        #threading.Thread(target=self.listen_for_msg, args=(client, username,  )).start()
+        threading.Thread(target=self.listen_for_msg, args=(client, self.activeUsers, self.activeModes)).start()
             
     #function to send message to a single client
     """def send_message_to_client(self,client,message):

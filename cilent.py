@@ -3,6 +3,7 @@ import customtkinter  # <- import the CustomTkinter module
 import socket
 import random
 import time
+import threading
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
@@ -19,75 +20,77 @@ clicked = True
 count = 0  
 HEADERSIZE = 10
 
+#creating client-side socket and setting ipAddr + portNum
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
 
 class Game_window:
     def __init__(self):
-        gamewindow = customtkinter.CTkToplevel()
-        gamewindow.geometry("850x600")
-        gamewindow.title("TikTacToe- Welcome {0}".format(root.userName_entry.get()))
-        gamewindow.resizable(False, False)
-        gamewindow.frame = customtkinter.CTkFrame(gamewindow)
-        gamewindow.frame.grid(row=3, column=3, padx=150, pady=50)
+        self.gamewindow = customtkinter.CTkToplevel()
+        self.gamewindow.geometry("850x600")
+        self.gamewindow.title("TikTacToe- Welcome {0}".format(root.userName_entry.get()))
+        self.gamewindow.resizable(False, False)
+        self.gamewindow.frame = customtkinter.CTkFrame(self.gamewindow)
+        self.gamewindow.frame.grid(row=3, column=3, padx=150, pady=50)
          #creation of message box frame
-        gamewindow.messagebox_frame = customtkinter.CTkFrame(gamewindow)
-        gamewindow.messagebox_frame.place(x=500, y=100)
+        self.gamewindow.messagebox_frame = customtkinter.CTkFrame(self.gamewindow)
+        self.gamewindow.messagebox_frame.place(x=500, y=100)
         #creation of message box field where all the messages can be seen 
-        textbox = customtkinter.CTkTextbox(gamewindow.messagebox_frame, width=300, height=410)
-        textbox.configure(state=customtkinter.DISABLED)
-        textbox.pack(side=customtkinter.RIGHT, padx=5, pady=5)
+        self.gamewindow.textbox = customtkinter.CTkTextbox(self.gamewindow.messagebox_frame, width=300, height=410)
+        self.gamewindow.textbox.configure(state=customtkinter.DISABLED)
+        self.gamewindow.textbox.pack(side=customtkinter.RIGHT, padx=5, pady=5)
         #creation of online users frame
-        gamewindow.label_frame = customtkinter.CTkFrame(gamewindow)
-        gamewindow.label_frame.place(x=500, y=50)
-        onlineUser = customtkinter.CTkTextbox(gamewindow.label_frame,width=300, height=50,)
+        self.gamewindow.label_frame = customtkinter.CTkFrame(self.gamewindow)
+        self.gamewindow.label_frame.place(x=500, y=50)
+        onlineUser = customtkinter.CTkTextbox(self.gamewindow.label_frame,width=300, height=50,)
         onlineUser.insert(customtkinter.END,"Online Users:\n")
         onlineUser.configure(state=customtkinter.DISABLED)
         onlineUser.pack(side=customtkinter.RIGHT, padx=5 )
         #creation of entry field
-        gamewindow.entry_frame = customtkinter.CTkFrame(gamewindow)
-        gamewindow.entry_frame.place(x=500, y=520)
-        entry = customtkinter.CTkEntry(gamewindow.entry_frame, width=200, height=50)
-        entry.pack(side=customtkinter.LEFT, padx=5)
-        def send_message():
-            msg = entry.get()
-            textbox.configure(state=customtkinter.NORMAL)
-            textbox.insert(customtkinter.END,"You: "+msg+"\n")
-            textbox.configure(state=customtkinter.DISABLED)
-            entry.delete(0, customtkinter.END)
+        self.gamewindow.entry_frame = customtkinter.CTkFrame(self.gamewindow)
+        self.gamewindow.entry_frame.place(x=500, y=520)
+        self.gamewindow.entry = customtkinter.CTkEntry(self.gamewindow.entry_frame, width=200, height=50)
+        self.gamewindow.entry.pack(side=customtkinter.LEFT, padx=5)
+
         #creation of send button
-        gamewindow.send_button = customtkinter.CTkButton(gamewindow.entry_frame, text="Send",height=50, width=50, command=send_message)
-        gamewindow.send_button.pack(side=customtkinter.RIGHT, padx=5)
-        
+        self.gamewindow.send_button = customtkinter.CTkButton(self.gamewindow.entry_frame, text="Send",height=50, width=50, command=lambda:send_message(self.gamewindow,client))
+        self.gamewindow.send_button.pack(side=customtkinter.RIGHT, padx=5)
+
+        #starts a thread that listens from messages from server
+        thread = threading.Thread(target=listen_for_messages_from_server, args=(self,client ))
+        thread.start()
+
         def Make_btn():
             global b1,b2,b3,b4,b5,b6,b7,b8,b9
             global clicked, count
             clicked = True
             count = 0
             #build our buttons
-            b1 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+            b1 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
                                                 hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b1),border_width=3,border_spacing= 13,
                                                 border_color=("white","white"))
-            b2 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+            b2 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
                                         hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b2),border_width=3,border_spacing= 13,
                                         border_color=("white","white"))
-            b3 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+            b3 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
                                         hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b3),border_width=3,border_spacing= 13,
                                         border_color=("white","white"))
-            b4 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+            b4 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
                                         hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b4),border_width=3,border_spacing= 13,
                                         border_color=("white","white"))
-            b5 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+            b5 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
                                         hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b5),border_width=3,border_spacing= 13,
                                         border_color=("white","white"))
-            b6 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+            b6 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
                                         hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b6),border_width=3,border_spacing= 13,
                                         border_color=("white","white"))
-            b7 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+            b7 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
                                         hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b7),border_width=3,border_spacing= 13,
                                         border_color=("white","white"))
-            b8 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+            b8 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
                                                 hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b8),border_width=3,border_spacing= 13,
                                                 border_color=("white","white"))
-            b9 = customtkinter.CTkButton(master=gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
+            b9 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
             	                                    hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b9),border_width=3,border_spacing= 13,
                                             border_color=("white","white"))
             b1.grid(row=0,column=0)
@@ -101,10 +104,10 @@ class Game_window:
             b9.grid(row=2,column=2)
         Make_btn()
         #reset button
-        br = customtkinter.CTkButton(gamewindow, text="Restart",command=lambda:Make_btn())
+        br = customtkinter.CTkButton(self.gamewindow, text="Restart",command=lambda:Make_btn())
         br.place(x=150, y=375)
         #quit button
-        bq = customtkinter.CTkButton(gamewindow, text="Quit",command= gamewindow.destroy)   ##quit button does not work as intended make a function that brings back root and quits out of the game window
+        bq = customtkinter.CTkButton(self.gamewindow, text="Quit",command= lambda: quit_game())   ##quit button does not work as intended make a function that brings back root and quits out of the game window
         bq.place(x=300, y=375)               
         def disable_all_buttons():
             b1.configure(state="disabled")
@@ -254,7 +257,51 @@ class Game_window:
                 check_winner()
             else:
                 messagebox.showerror("Error", "This box has already been selected\nPick another box...")
+
+        def quit_game():
+            self.gamewindow.destroy()
+            root.destroy()
+            disconnect(client)
+
+        def disconnect(client):
+            client.shutdown(socket.SHUT_RDWR)
+            client.close()
+            print('disconnected from server')
+
+#function send_message sends the message to all other clients
+def send_message(self,client):
+    
+    #Gets message entered by the user
+    self.message = self.entry.get()
+    root.username = root.userName_entry.get()
+    
+    #checks if message is not empty
+    if self.message != '':
+        root.username = f'{len(root.username):<{HEADERSIZE}}' + root.username
+        client.send(bytes(root.username,'utf-8'))
+
+        time.sleep(0.1)
+
+        self.message = f'{len(self.message):<{HEADERSIZE}}' + self.message
+        #sends message to all active clients 
+        client.send(bytes(self.message,'utf-8'))
+        
+        #deletes the message entered by the user in the message box
+        self.entry.delete(0, len(self.message))
+    
+    #checks if message is empty, then it will display a error message
+    else:
+        messagebox.showerror("Empty message", "Message cannot be empty")
+        self.entry.delete(0, customtkinter.END)
+        pass
+
+
+    
+        
+
+
 def enter_game():
+
     username = root.userName_entry.get()
 
     #if username empty then it will display error message to users
@@ -270,45 +317,48 @@ def enter_game():
 
         c1=Game_window()
 
-    #Generate a random IPv4 address while keeping the first octet as '127'
-def generate_random_ipv4_address():
-    octets = ['127']
-    for i in range(1, 4):
-        octets.append(str(random.randint(0, 255)))
-    return '.'.join(octets)
-# Generate a random integer between 1024 and 65535
-def generate_random_port_number():
-    port_number = random.randint(1024, 65535)
-    return port_number
-
-#creating client-side socket and setting ipAddr + portNum
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ipAddress = generate_random_ipv4_address()
-portNum = generate_random_port_number()
 
 
-#Binding socket to IP and Port
-try:
-    client.bind((ipAddress,portNum))
-    print(f"Client set to ({ipAddress}, {portNum})")
-except:
-    print(f"Unable to bind to {ipAddress} and port {ipAddress}")
 
 
 #function that is used to connect the client to the server
 def connect(self):
+
+        #Generate a random IPv4 address while keeping the first octet as '127'
+    def generate_random_ipv4_address():
+        octets = ['127']
+        for i in range(1, 4):
+            octets.append(str(random.randint(0, 255)))
+        return '.'.join(octets)
+    # Generate a random integer between 1024 and 65535
+    def generate_random_port_number():
+        port_number = random.randint(1024, 65535)
+        return port_number
+
+    ipAddress = generate_random_ipv4_address()
+    portNum = generate_random_port_number() 
+
+        #Binding socket to IP and Port
+    try:
+        client.bind((ipAddress,portNum))
+        print(f"Client set to ({ipAddress}, {portNum})")
+    except:
+        print(f"Unable to bind to {ipAddress} and port {ipAddress}")
+
         
     #gets the username user and stores in username 
     self.username = self.userName_entry.get()
-
-
     self.menuOption = self.menu.get()
     
     # try except block
     try:
         # Connect to the server
         client.connect((SERVER_HOST, SERVER_PORT))
+
+
         self.username = f'{len(self.username):<{HEADERSIZE}}' + self.username
+
+
         client.send(bytes(self.username,'utf-8'))
         time.sleep(0.1)
         self.menuOption = f'{len(self.menuOption):<{HEADERSIZE}}' + self.menuOption
@@ -321,7 +371,35 @@ def connect(self):
         messagebox.showerror("Unable to connect to server", f"Unable to connect to server {self.HOST} {self.PORT}")
         root.mainloop()
 
-    
+
+# listens for message from all active clients
+def  listen_for_messages_from_server(self,client):
+    #runs in an infinite loop to listen for messages
+    while 1:
+            #receives upto 1024 bytes of data and decodes using utf-8
+            message = client.recv(1024).decode('utf-8')
+            print(message)
+            
+            #checks if message is not empty
+            if message != '':
+                #adds message in message box
+                add_message(self.gamewindow,message)
+            
+            # checks if message entered is empty, then display error message
+            else:
+                messagebox.showerror("Error", "Message recevied from client is empty")
+                pass
+
+#adds message in message box
+def add_message(self,message):
+    self.textbox.configure(state=customtkinter.NORMAL)
+    self.textbox.insert(customtkinter.END, message + '\n')
+    self.textbox.configure(state=customtkinter.DISABLED)
+        
+   
+
+
+
 #creation of userFrame
 root.userName_frame = customtkinter.CTkFrame(root,)
 root.userName_frame.grid(row=3, column=1, padx=150, pady=200)
