@@ -17,6 +17,9 @@ class Server:
         self.activeUsers = []
         self.activeModes = []
         self.HEADERSIZE = 10
+
+        #if user sends this hashed string it will exit program
+        #probablity (approx) = 3.421×10^−72 %
         self.EXIT_STRING = 'a72b20062ec2c47ab2ceb97ac1bee818f8b6c6cb'
         
         #AF_INET: we are going to use IPv4 addresses
@@ -68,7 +71,7 @@ class Server:
                     if user == username:
                         print('found')
                         break
-                    elif i == 50:
+                    elif i == self.LIMIT:
                         print('exit')
                         break
                     i = i + 1
@@ -102,6 +105,21 @@ class Server:
                     full_msg = ''
                     i = 0
                     return
+                
+                elif message.startswith("MOVE"):
+                    # Extract the row and column from the move message
+                    print("Received move:", message)
+                    _, row_str, col_str = message.split()
+                    row = int(row_str)
+                    col = int(col_str)
+
+                    # Process the move
+                    response = self.process_move(row, col, activeUsers[i], activeMode[i]) 
+                    self.send_message_to_client(client,response)
+
+                    new_msg = True
+                    full_msg = ''
+                    i = 0
 
                 else:
                     user_msg = (f"{activeUsers[i]} ({activeMode[i]}) : {message}")
@@ -128,6 +146,15 @@ class Server:
     def send_message_to_client(self,client,message):
         client.sendall(message.encode('utf-8'))
     
+    def process_move(self,  row, col, username, mode):
+        print(f"Processing move by {username} ({mode}) : Row={row}, Column={col}")
+
+        #<-- Have to implement a way to store move -->
+
+        response = "Move processed successfully"
+
+        return response
+
     #Function to handle client
     def handle_client(self,client, ):
 

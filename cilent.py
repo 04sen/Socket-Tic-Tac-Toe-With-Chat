@@ -61,203 +61,106 @@ class Game_window:
         thread = threading.Thread(target=listen_for_messages_from_server, args=(self,client ))
         thread.start()
 
-        def Make_btn():
-            global b1,b2,b3,b4,b5,b6,b7,b8,b9
-            global clicked, count
-            clicked = True
-            count = 0
-            #build our buttons
-            b1 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                                hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b1),border_width=3,border_spacing= 13,
-                                                border_color=("white","white"))
-            b2 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                        hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b2),border_width=3,border_spacing= 13,
-                                        border_color=("white","white"))
-            b3 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                        hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b3),border_width=3,border_spacing= 13,
-                                        border_color=("white","white"))
-            b4 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                        hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b4),border_width=3,border_spacing= 13,
-                                        border_color=("white","white"))
-            b5 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                        hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b5),border_width=3,border_spacing= 13,
-                                        border_color=("white","white"))
-            b6 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                        hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b6),border_width=3,border_spacing= 13,
-                                        border_color=("white","white"))
-            b7 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                        hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b7),border_width=3,border_spacing= 13,
-                                        border_color=("white","white"))
-            b8 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-                                                hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b8),border_width=3,border_spacing= 13,
-                                                border_color=("white","white"))
-            b9 = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ",font=("Helvetica",20), height=100,width=100,
-            	                                    hover_color=("gray70", "gray30"),fg_color="transparent",command=lambda:b_click(b9),border_width=3,border_spacing= 13,
-                                            border_color=("white","white"))
-            b1.grid(row=0,column=0)
-            b2.grid(row=0,column=1)
-            b3.grid(row=0,column=2)
-            b4.grid(row=1,column=0)
-            b5.grid(row=1,column=1)
-            b6.grid(row=1,column=2)
-            b7.grid(row=2,column=0)
-            b8.grid(row=2,column=1)
-            b9.grid(row=2,column=2)
-        Make_btn()
+        
+        board = [["" for _ in range(3)] for _ in range(3)]
+
+        def button_click(row, col):
+            global winner
+            winner = False
+            if not winner and board[row][col] == "":
+                print(f"Button clicked: ({row}, {col})")
+                current_player = "X" if sum(row.count("X") for row in board) == sum(row.count("O") for row in board) else "O"
+                # Update the board
+                board[row][col] = current_player
+                # Update the button text to the current player
+                buttons[row][col].configure(text=current_player)
+                check_winner()
+                send_move(row,col)
+        #send the move made by the user
+        def send_move(row, col):
+            # Convert row and column values to integers
+            row_int = int(row)
+            col_int = int(col)
+            
+            root.username = root.userName_entry.get()
+            root.username = f'{len(root.username):<{HEADERSIZE}}' + root.username
+            client.send(bytes(root.username,'utf-8'))
+            time.sleep(0.1)
+            # Construct the message string with integers
+            message = f"MOVE {row_int} {col_int}"
+            message = f'{len(message):< {HEADERSIZE }}' + message
+
+            # Encode and send the message to the server
+            client.send(bytes(message, 'utf-8'))  
+
+        def create_brd():
+            global buttons
+            buttons = []
+            for i in range(3):
+                row_buttons = []
+                for j in range(3):
+                    button = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ", font=("Helvetica",20),
+                                             height=100, width=100, hover_color=("gray70", "gray30"),
+                                             fg_color="transparent", command=lambda row=i, col=j: button_click(row, col),
+                                             border_width=3, border_spacing=13, border_color=("white", "white"))
+                    button.grid(row=i, column=j, padx=5, pady=5)
+                    row_buttons.append(button)
+                buttons.append(row_buttons)
+        
+        create_brd()
+
         #reset button
-        br = customtkinter.CTkButton(self.gamewindow, text="Restart",command=lambda:Make_btn())
+        br = customtkinter.CTkButton(self.gamewindow, text="Restart",command=lambda:create_brd())
         br.place(x=150, y=375)
         #quit button
         bq = customtkinter.CTkButton(self.gamewindow, text="Quit",command= lambda: quit_game())   ##quit button does not work as intended make a function that brings back root and quits out of the game window
         bq.place(x=300, y=375)               
-        def disable_all_buttons():
-            b1.configure(state="disabled")
-            b2.configure(state="disabled")
-            b3.configure(state="disabled")
-            b4.configure(state="disabled")
-            b5.configure(state="disabled")
-            b6.configure(state="disabled")
-            b7.configure(state="disabled")
-            b8.configure(state="disabled")
-            b9.configure(state="disabled")
         #check if won
+            
+        def highlight_winning_buttons(coords):
+            for row, col in coords:
+                buttons[row][col].configure(fg_color="green")
+
+        def disable_all_buttons():
+            for row in buttons:
+                for button in row:
+                    button.configure(state="disabled")
         def check_winner():
             global winner
             winner = False
-            #horizontal
-            if b1.cget("text") == "X" and b2.cget("text") == "X" and b3.cget("text") == "X":
-                b1.configure(fg_color="green")
-                b2.configure(fg_color="green")
-                b3.configure(fg_color="green")
+            # Horizontal
+            for i in range(3):
+                if board[i][0] == board[i][1] == board[i][2] != "":
+                    winner = True
+                    highlight_winning_buttons([(i, 0), (i, 1), (i, 2)])
+                    messagebox.showinfo("Winner", f"Player {board[i][0]} is the winner")
+                    disable_all_buttons()
+
+            # Vertical
+            for i in range(3):
+                if board[0][i] == board[1][i] == board[2][i] != "":
+                    winner = True
+                    highlight_winning_buttons([(0, i), (1, i), (2, i)])
+                    messagebox.showinfo("Winner", f"Player {board[0][i]} is the winner")                   
+                    disable_all_buttons()
+
+            # Diagonals
+            if board[0][0] == board[1][1] == board[2][2] != "":
+                
                 winner = True
-                messagebox.showinfo("Winner", "Player X is the winner")
+                messagebox.showinfo("Winner", f"Player {board[0][0]} is the winner")
+                highlight_winning_buttons([(0, 0), (1, 1), (2, 2)])
                 disable_all_buttons()
-            elif b4.cget("text") == "X" and b5.cget("text") == "X" and b6.cget("text") == "X":
-                b4.configure(fg_color="green")
-                b5.configure(fg_color="green")
-                b6.configure(fg_color="green")
+            elif board[0][2] == board[1][1] == board[2][0] != "":
                 winner = True
-                messagebox.showinfo("Winner", "Player X is the winner")
+                messagebox.showinfo("Winner", f"Player {board[0][2]} is the winner")
+                highlight_winning_buttons([(0, 2), (1, 1), (2, 0)])
                 disable_all_buttons()
-            elif b7.cget("text") == "X" and b8.cget("text") == "X" and b9.cget("text") == "X":
-                b7.configure(fg_color="green")
-                b8.configure(fg_color="green")
-                b9.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player X is the winner")
+           
+            # Check for a tie
+            if not any("" in row for row in board) and not winner:
+                messagebox.showinfo("Tie", "The game is a tie!")
                 disable_all_buttons()
-            #vertical
-            elif b1.cget("text") == "X" and b4.cget("text") == "X" and b7.cget("text") == "X":
-                b1.configure(fg_color="green")
-                b4.configure(fg_color="green")
-                b7.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player X is the winner")
-                disable_all_buttons()
-            elif b2.cget("text") == "X" and b5.cget("text") == "X" and b8.cget("text") == "X":
-                b2.configure(fg_color="green")
-                b5.configure(fg_color="green")
-                b8.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player X is the winner")
-                disable_all_buttons()
-            elif b3.cget("text") == "X" and b6.cget("text") == "X" and b9.cget("text") == "X":
-                b3.configure(fg_color="green")
-                b6.configure(fg_color="green")
-                b9.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player X is the winner")
-                disable_all_buttons()
-            #diagnols
-            elif b1.cget("text") == "X" and b5.cget("text") == "X" and b9.cget("text") == "X":
-                b1.configure(fg_color="green")
-                b5.configure(fg_color="green")
-                b9.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player X is the winner")
-                disable_all_buttons()
-            elif b3.cget("text") == "X" and b5.cget("text") == "X" and b7.cget("text") == "X":
-                b3.configure(fg_color="green")
-                b5.configure(fg_color="green")
-                b7.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player X is the winner")
-                disable_all_buttons()
-        #check for O
-            elif b1.cget("text") == "O" and b2.cget("text") == "O" and b3.cget("text") == "O":
-                b1.configure(fg_color="green")
-                b2.configure(fg_color="green")
-                b3.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player O is the winner")
-                disable_all_buttons()
-            elif b4.cget("text") == "O" and b5.cget("text") == "O" and b6.cget("text") == "O":
-                b4.configure(fg_color="green")
-                b5.configure(fg_color="green")
-                b6.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player O is the winner")
-                disable_all_buttons()
-            elif b7.cget("text") == "O" and b8.cget("text") == "O" and b9.cget("text") == "O":
-                b7.configure(fg_color="green")
-                b8.configure(fg_color="green")
-                b9.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player O is the winner")
-                disable_all_buttons()
-            #vertical
-            elif b1.cget("text") == "O" and b4.cget("text") == "O" and b7.cget("text") == "O":
-                b1.configure(fg_color="green")
-                b4.configure(fg_color="green")
-                b7.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player O is the winner")
-                disable_all_buttons()
-            elif b2.cget("text") == "O" and b5.cget("text") == "O" and b8.cget("text") == "O":
-                b2.configure(fg_color="green")
-                b5.configure(fg_color="green")
-                b8.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player O is the winner")
-                disable_all_buttons()
-            elif b3.cget("text") == "O" and b6.cget("text") == "O" and b9.cget("text") == "O":
-                b3.configure(fg_color="green")
-                b6.configure(fg_color="green")
-                b9.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player O is the winner")
-                disable_all_buttons()
-            #diagnols
-            elif b1.cget("text") == "O" and b5.cget("text") == "O" and b9.cget("text") == "O":
-                b1.configure(fg_color="green")
-                b5.configure(fg_color="green")
-                b9.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player O is the winner")
-                disable_all_buttons()
-            elif b3.cget("text") == "O" and b5.cget("text") == "O" and b7.cget("text") == "O":
-                b3.configure(fg_color="green")
-                b5.configure(fg_color="green")
-                b7.configure(fg_color="green")
-                winner = True
-                messagebox.showinfo("Winner", "Player O is the winner")
-                disable_all_buttons()           
-        #button clicked function
-        def b_click(b):
-            global clicked, count
-            
-            if b.cget("text") == " " and clicked == True:
-                b.configure(text = "X")
-                clicked = False
-                count += 1
-                check_winner()
-            elif b.cget("text") == " " and clicked == False:
-                b.configure(text = "O")
-                clicked = True
-                count += 1
-                check_winner()
-            else:
-                messagebox.showerror("Error", "This box has already been selected\nPick another box...")
 
         def quit_game():
             disconnect(client)
@@ -269,8 +172,6 @@ class Game_window:
             client.close()
            
            
-            
-
         def disconnect(client):
             root.username = root.userName_entry.get()
             exit_msg = EXIT_STRING
