@@ -62,16 +62,16 @@ class Game_window:
         thread.start()
 
         
-        board = [["" for _ in range(3)] for _ in range(3)]
+        self.board = [["" for _ in range(3)] for _ in range(3)]
 
         def button_click(row, col):
             global winner
             winner = False
-            if not winner and board[row][col] == "":
+            if not winner and self.board[row][col] == "":
                 print(f"Button clicked: ({row}, {col})")
-                current_player = "X" if sum(row.count("X") for row in board) == sum(row.count("O") for row in board) else "O"
+                current_player = "X" if sum(row.count("X") for row in self.board) == sum(row.count("O") for row in self.board) else "O"
                 # Update the board
-                board[row][col] = current_player
+                self.board[row][col] = current_player
                 # Update the button text to the current player
                 buttons[row][col].configure(text=current_player)
                 check_winner()
@@ -121,47 +121,7 @@ class Game_window:
             for row, col in coords:
                 buttons[row][col].configure(fg_color="green")
 
-        def disable_all_buttons():
-            for row in buttons:
-                for button in row:
-                    button.configure(state="disabled")
-        def check_winner():
-            global winner
-            winner = False
-            # Horizontal
-            for i in range(3):
-                if board[i][0] == board[i][1] == board[i][2] != "":
-                    winner = True
-                    highlight_winning_buttons([(i, 0), (i, 1), (i, 2)])
-                    messagebox.showinfo("Winner", f"Player {board[i][0]} is the winner")
-                    disable_all_buttons()
-
-            # Vertical
-            for i in range(3):
-                if board[0][i] == board[1][i] == board[2][i] != "":
-                    winner = True
-                    highlight_winning_buttons([(0, i), (1, i), (2, i)])
-                    messagebox.showinfo("Winner", f"Player {board[0][i]} is the winner")                   
-                    disable_all_buttons()
-
-            # Diagonals
-            if board[0][0] == board[1][1] == board[2][2] != "":
-                
-                winner = True
-                messagebox.showinfo("Winner", f"Player {board[0][0]} is the winner")
-                highlight_winning_buttons([(0, 0), (1, 1), (2, 2)])
-                disable_all_buttons()
-            elif board[0][2] == board[1][1] == board[2][0] != "":
-                winner = True
-                messagebox.showinfo("Winner", f"Player {board[0][2]} is the winner")
-                highlight_winning_buttons([(0, 2), (1, 1), (2, 0)])
-                disable_all_buttons()
-           
-            # Check for a tie
-            if not any("" in row for row in board) and not winner:
-                messagebox.showinfo("Tie", "The game is a tie!")
-                disable_all_buttons()
-
+        
         def quit_game():
             disconnect(client)
             print('disconnected from server')
@@ -296,6 +256,24 @@ def  listen_for_messages_from_server(self,client):
                 #adds into Label
                 add_onlineUser(self.gamewindow,message)
                 message = ''
+            elif message.startswith("MOVE"):
+                _, row_str, col_str = message.split()
+                row = int(row_str)
+                col = int(col_str)
+                current_player = "X" if sum(row.count("X") for row in self.board) == sum(row.count("O") for row in self.board) else "O"
+                # Update the board
+                self.board[row][col] = current_player
+                # Update the button text to the current player
+                buttons[row][col].configure(text=current_player)
+            elif message.startswith("You win!"):
+                #messagebox to send if user wins
+                pass
+            elif message.startswith("Tie game!"):
+                #messagebox to send if tie happens
+                pass
+            elif message.startswith("Server wins!"):
+                #messagebox to sebd if server wins
+                pass
             else:
                 add_message(self.gamewindow,message)
                 message = ''
