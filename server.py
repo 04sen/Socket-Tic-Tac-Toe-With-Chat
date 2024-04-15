@@ -17,7 +17,7 @@ class Server:
         self.activeUsers = []
         self.activeModes = []
         self.HEADERSIZE = 10
-
+        self.game_board = [[' ' for _ in range(3)] for _ in range(3)]
         #if user sends this hashed string it will exit program
         #probablity (approx) = 3.421×10^−72 %
         self.EXIT_STRING = 'a72b20062ec2c47ab2ceb97ac1bee818f8b6c6cb'
@@ -111,8 +111,7 @@ class Server:
                     col = int(col_str)
 
                     # Process the move
-                    response = self.process_move(row, col, activeUsers[i], activeMode[i]) 
-                    self.send_message_to_client(client,response)
+                    self.process_move(self.activeClients[i], row,col) 
 
                     new_msg = True
                     full_msg = ''
@@ -137,21 +136,67 @@ class Server:
     def send_Messages_to_all(self,message):
         print(message)
         for user in self.activeClients:
-            self.send_message_to_client(user[1], message)
-            
+             self.send_message_to_client(user, message)
+             
+    
             
         #function to send message to a single client
     def send_message_to_client(self,client,message):
         client.sendall(bytes(message, 'utf-8'))
-    
-    def process_move(self,  row, col, username, mode):
-        print(f"Processing move by {username} ({mode}) : Row={row}, Column={col}")
+    #processing the moves recieved from client
+    def process_move(self, client, row, col):
+        # Check if the spot is already taken or not
+        if self.game_board[row][col] == ' ':
+            self.game_board[row][col] = 'X'  # Client's move
+            if self.check_win(self.game_board, 'X'):
+                client.sendall("You win!".encode('utf-8'))
+                return  # Stop further processing as the game is over
+            elif not any(' ' in row for row in self.game_board):
+                client.sendall("Tie game!".encode('utf-8'))
+                return  # Stop further processing as the game is a tie
+            else:
+                self.server_move(client)  # Server makes a move if game not ended
+        else:
+            client.sendall("Invalid move".encode('utf-8'))
 
-        #<-- Have to implement a way to store move -->
 
-        response = "Move processed successfully"
-        return response
+    def server_move(self, board, client):
+        # Simple random move logic by the server
+        import random
+        empty = [(r, c) for r in range(3) for c in range(3) if board[r][c] == ' ']
+        if empty:
+            row, col = random.choice(empty)
+            board[row][col] = 'O'
+            if self.check_win(board, 'O'):
+                client.sendall("Server wins!".encode('utf-8'))
+            else:
+                client.sendall(f"MOVE {row} {col}".encode('utf-8'))
+        else:
+            client.sendall("Tie game!".encode('utf-8'))
+    def server_move(self, client):
+        import random
+        empty = [(r, c) for r in range(3) for c in range(3) if self.game_board[r][c] == ' ']
+        if empty:
+            row, col = random.choice(empty)
+            self.game_board[row][col] = 'O'  # Server's move
+            if self.check_win(self.game_board, 'O'):
+                client.sendall("Server wins!".encode('utf-8'))
+            elif not any(' ' in row for row in self.game_board):  # Check if tie
+                client.sendall("Tie game!".encode('utf-8'))
+            else:
+                client.sendall(f"MOVE {row} {col}".encode('utf-8'))  # Inform client of server's move
+        else:
+            client.sendall("Tie game!".encode('utf-8'))
 
+    def check_win(self, board, player):
+        # Check horizontal, vertical and diagonal wins
+        for i in range(3):
+            if all(board[i][j] == player for j in range(3)) or all(board[j][i] == player for j in range(3)):
+                return True
+        if board[0][0] == board[1][1] == board[2][2] == player or board[0][2] == board[1][1] == board[2][0] == player:
+            return True
+        return False
+    #---------------------------------------------------------------------------------
     #Function to handle client
     def handle_client(self,client, ):
 
@@ -175,7 +220,7 @@ class Server:
             if len(full_msg) - self.HEADERSIZE == msglen:
                 print("Full message recvd")
                 username = full_msg[self.HEADERSIZE:]
-                self.activeClients.append((username,client))
+                self.activeClients.append(client)
                 self.activeUsers.append(username)
                 user_joined_msg = (f"{username}: joined!")
                 print(user_joined_msg)
