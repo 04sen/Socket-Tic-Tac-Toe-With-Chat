@@ -75,9 +75,6 @@ class Server:
                         print('exit')
                         break
                     i = i + 1
-                
-                print(activeUsers)
-                print(i)
 
                 new_msg = True
                 full_msg = ''
@@ -125,6 +122,7 @@ class Server:
                     user_msg = (f"{activeUsers[i]} ({activeMode[i]}) : {message}")
                     print(user_msg)
                     self.send_Messages_to_all(user_msg)
+
                 new_msg = True
                 full_msg = ''
                 i = 0
@@ -144,7 +142,7 @@ class Server:
             
         #function to send message to a single client
     def send_message_to_client(self,client,message):
-        client.sendall(message.encode('utf-8'))
+        client.sendall(bytes(message, 'utf-8'))
     
     def process_move(self,  row, col, username, mode):
         print(f"Processing move by {username} ({mode}) : Row={row}, Column={col}")
@@ -152,7 +150,6 @@ class Server:
         #<-- Have to implement a way to store move -->
 
         response = "Move processed successfully"
-
         return response
 
     #Function to handle client
@@ -203,8 +200,12 @@ class Server:
                 print(user_mode_msg)
                 new_msg = True
                 full_msg = ''
-
+  
+            message = f'{self.activeUsers}' + ", "
             send_msg = f'{username} joined on {menu} Mode!'
+
+            self.send_Messages_to_all(message)
+            time.sleep(1)
             self.send_Messages_to_all(send_msg)
 
             break

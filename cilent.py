@@ -43,10 +43,10 @@ class Game_window:
         #creation of online users frame
         self.gamewindow.label_frame = customtkinter.CTkFrame(self.gamewindow)
         self.gamewindow.label_frame.place(x=500, y=50)
-        onlineUser = customtkinter.CTkTextbox(self.gamewindow.label_frame,width=300, height=50,)
-        onlineUser.insert(customtkinter.END,"Online Users:\n")
-        onlineUser.configure(state=customtkinter.DISABLED)
-        onlineUser.pack(side=customtkinter.RIGHT, padx=5 )
+        self.gamewindow.onlineUser = customtkinter.CTkTextbox(self.gamewindow.label_frame,width=300, height=50,)
+        self.gamewindow.onlineUser.insert(customtkinter.END,"Online Users:\n")
+        self.gamewindow.onlineUser.configure(state=customtkinter.DISABLED)
+        self.gamewindow.onlineUser.pack(side=customtkinter.RIGHT, padx=5 )
         #creation of entry field
         self.gamewindow.entry_frame = customtkinter.CTkFrame(self.gamewindow)
         self.gamewindow.entry_frame.place(x=500, y=520)
@@ -298,15 +298,19 @@ def  listen_for_messages_from_server(self,client):
             message = client.recv(1024).decode('utf-8')
             print(message)
             
-            #checks if message is not empty
-            if message != '':
-                #adds message in message box
-                add_message(self.gamewindow,message)
-            
-            # checks if message entered is empty, then display error message
+            #checks if message is Active Users
+            if message.startswith("["):
+                #adds into Label
+                add_onlineUser(self.gamewindow,message)
+                message = ''
             else:
-                messagebox.showerror("Error", "Message recevied from client is empty")
-                pass
+                add_message(self.gamewindow,message)
+                message = ''
+
+            message = client.recv(1024).decode('utf-8')
+
+            if message != '':
+                    add_message(self.gamewindow,message)   
 
 #adds message in message box
 def add_message(self,message):
@@ -314,9 +318,16 @@ def add_message(self,message):
     self.textbox.insert(customtkinter.END, message + '\n')
     self.textbox.configure(state=customtkinter.DISABLED)
         
+#adds message in message box
+def add_onlineUser(self,message):
+    self.onlineUser.pack_forget()
+    self.onlineUser = customtkinter.CTkTextbox(self.label_frame,width=300, height=50,)
+    self.onlineUser.configure(state=customtkinter.NORMAL)
+    self.onlineUser.insert(customtkinter.END,"Online Users:\n")
+    self.onlineUser.insert(customtkinter.END,message)
+    self.onlineUser.configure(state=customtkinter.DISABLED)
+    self.onlineUser.pack(side=customtkinter.RIGHT, padx=5 )
    
-
-
 
 #creation of userFrame
 root.userName_frame = customtkinter.CTkFrame(root,)
