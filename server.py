@@ -44,7 +44,7 @@ class Server:
             
     
     #listen_fro_msg_implentation
-    def listen_for_msg(self, client, activeUsers, activeMode):
+    def listen_for_msg(self, client, activeUsers, activeMode,board):
 
         full_msg = ''
         new_msg = True
@@ -111,7 +111,7 @@ class Server:
                     col = int(col_str)
 
                     # Process the move
-                    self.process_move(self.activeClients[i], row,col) 
+                    self.process_move(self.activeClients[i], row,col,board) 
 
                     new_msg = True
                     full_msg = ''
@@ -144,14 +144,14 @@ class Server:
     def send_message_to_client(self,client,message):
         client.sendall(bytes(message, 'utf-8'))
     #processing the moves recieved from client
-    def process_move(self, client, row, col):
+    def process_move(self, client, row, col,board):
         # Check if the spot is already taken or not
-        if self.game_board[row][col] == ' ':
-            self.game_board[row][col] = 'X'  # Client's move
-            if self.check_win(self.game_board, 'X'):
+        if board[row][col] == ' ':
+            board[row][col] = 'X'  # Client's move
+            if self.check_win(board, 'X'):
                 client.sendall("You win!".encode('utf-8'))
                 return  # Stop further processing as the game is over
-            elif not any(' ' in row for row in self.game_board):
+            elif not any(' ' in row for row in board):
                 client.sendall("Tie game!".encode('utf-8'))
                 return  # Stop further processing as the game is a tie
             else:
@@ -204,7 +204,7 @@ class Server:
         new_msg = True
 
         
-        
+        board = [[' ' for _ in range(3)] for _ in range(3)]
         #server will listen for client userName
         while True:
             #Receives upto 1024 byte of data
@@ -255,7 +255,7 @@ class Server:
 
             break
             
-        threading.Thread(target=self.listen_for_msg, args=(client, self.activeUsers, self.activeModes)).start()
+        threading.Thread(target=self.listen_for_msg, args=(client, self.activeUsers, self.activeModes,board)).start()
             
     #function to send message to a single client
     """def send_message_to_client(self,client,message):
