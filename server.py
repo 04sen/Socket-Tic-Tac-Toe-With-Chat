@@ -44,7 +44,7 @@ class Server:
             
     
     #listen_fro_msg_implentation
-    def listen_for_msg(self, client, activeUsers, activeMode):
+    def listen_for_msg(self, client, activeUsers, activeMode, activeClients):
 
         full_msg = ''
         new_msg = True
@@ -98,6 +98,9 @@ class Server:
                     self.send_Messages_to_all(user_msg)
                     activeUsers.pop(i)
                     activeMode.pop(i)
+                    activeClients.pop(i)
+                    current_activeUsers = f'{activeUsers}'
+                    self.send_Messages_to_all(current_activeUsers)
                     new_msg = True
                     full_msg = ''
                     i = 0
@@ -137,7 +140,7 @@ class Server:
     def send_Messages_to_all(self,message):
         print(message)
         for user in self.activeClients:
-            self.send_message_to_client(user[1], message)
+            self.send_message_to_client(user, message)
             
             
         #function to send message to a single client
@@ -175,7 +178,7 @@ class Server:
             if len(full_msg) - self.HEADERSIZE == msglen:
                 print("Full message recvd")
                 username = full_msg[self.HEADERSIZE:]
-                self.activeClients.append((username,client))
+                self.activeClients.append(client)
                 self.activeUsers.append(username)
                 user_joined_msg = (f"{username}: joined!")
                 print(user_joined_msg)
@@ -201,16 +204,16 @@ class Server:
                 new_msg = True
                 full_msg = ''
   
-            message = f'{self.activeUsers}' + ", "
+            activeUsers = f'{self.activeUsers}'
             send_msg = f'{username} joined on {menu} Mode!'
 
-            self.send_Messages_to_all(message)
+            self.send_Messages_to_all(activeUsers)
             time.sleep(1)
             self.send_Messages_to_all(send_msg)
 
             break
             
-        threading.Thread(target=self.listen_for_msg, args=(client, self.activeUsers, self.activeModes)).start()
+        threading.Thread(target=self.listen_for_msg, args=(client, self.activeUsers, self.activeModes, self.activeClients)).start()
             
     #function to send message to a single client
     """def send_message_to_client(self,client,message):

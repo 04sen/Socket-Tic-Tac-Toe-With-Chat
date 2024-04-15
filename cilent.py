@@ -214,10 +214,6 @@ def send_message(self,client):
         pass
 
 
-    
-        
-
-
 def enter_game():
 
     username = root.userName_entry.get()
@@ -234,9 +230,6 @@ def enter_game():
 
 
         c1=Game_window()
-
-
-
 
 
 #function that is used to connect the client to the server
@@ -306,11 +299,6 @@ def  listen_for_messages_from_server(self,client):
             else:
                 add_message(self.gamewindow,message)
                 message = ''
-
-            message = client.recv(1024).decode('utf-8')
-
-            if message != '':
-                    add_message(self.gamewindow,message)   
 
 #adds message in message box
 def add_message(self,message):
