@@ -159,7 +159,7 @@ class Server:
                 client.sendall("Tie game!".encode('utf-8'))
                 return  # Stop further processing as the game is a tie
             else:
-                self.server_move(client)  # Server makes a move if game not ended
+                self.server_move(board, client)  # Server makes a move if game not ended
         else:
             client.sendall("Invalid move".encode('utf-8'))
 
@@ -177,21 +177,6 @@ class Server:
         else:
             client.sendall("Tie game!".encode('utf-8'))
 
-
-    def server_move(self, client):
-        import random
-        empty = [(r, c) for r in range(3) for c in range(3) if self.game_board[r][c] == ' ']
-        if empty:
-            row, col = random.choice(empty)
-            self.game_board[row][col] = 'O'  # Server's move
-            if self.check_win(self.game_board, 'O'):
-                client.sendall("Server wins!".encode('utf-8'))
-            elif not any(' ' in row for row in self.game_board):  # Check if tie
-                client.sendall("Tie game!".encode('utf-8'))
-            else:
-                client.sendall(f"MOVE {row} {col}".encode('utf-8'))  # Inform client of server's move
-        else:
-            client.sendall("Tie game!".encode('utf-8'))
 
     def check_win(self, board, player):
         # Check horizontal, vertical and diagonal wins

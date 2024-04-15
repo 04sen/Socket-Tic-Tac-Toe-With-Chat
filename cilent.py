@@ -74,7 +74,6 @@ class Game_window:
                 self.board[row][col] = current_player
                 # Update the button text to the current player
                 buttons[row][col].configure(text=current_player)
-                check_winner()
                 send_move(row,col)
         #send the move made by the user
         def send_move(row, col):
