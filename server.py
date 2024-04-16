@@ -16,10 +16,9 @@ class Server:
         self.activeClients = []
         self.activeUsers = []
         self.activeModes = []
-        self.game_boards = []
         self.HEADERSIZE = 10
-
-    
+        self.game_board = [[' ' for _ in range(3)] for _ in range(3)]
+        self.game_boards = []
 
         #if user sends this hashed string it will exit program
         #probablity (approx) = 3.421×10^−72 %
@@ -44,11 +43,9 @@ class Server:
             client, address = self.server.accept()
             print(f"successfully connected client ({address[0]},{address[1]})")
             threading.Thread(target=self.handle_client(client,)).start()
-
-
             
     #listen_fro_msg_implentation
-    def listen_for_msg(self, client, activeUsers, activeMode, activeClients,game_boards):
+    def listen_for_msg(self, client, activeUsers, activeMode, activeClients, game_boards):
 
         full_msg = ''
         new_msg = True
@@ -109,7 +106,6 @@ class Server:
                     full_msg = ''
                     i = 0
                     return
-                
                 elif message == "RESET":
                     print(game_boards[i])
                     game_boards[i] = self.create_brd()
@@ -120,10 +116,7 @@ class Server:
                     new_msg = True
                     full_msg = ''
                     i = 0
-                    
-
-                
-                elif message.startswith("MOVE"):
+                elif message.startswith("MOVE") and activeMode[i] == "COMPUTER":
                     # Extract the row and column from the move message
                     print("Received move:", message)
                     _, row_str, col_str = message.split()
@@ -131,12 +124,14 @@ class Server:
                     col = int(col_str)
 
                     # Process the move
-                    self.process_move(self.activeClients[i], row,col,self.game_boards[i])
+                    self.process_move_computer(self.activeClients[i], row,col,self.game_boards[i])
 
                     new_msg = True
                     full_msg = ''
                     i = 0
-
+                elif message.startswith("MOVE") and activeMode[i] == "HUMAN":
+                    
+                    pass
                 else:
                     user_msg = (f"{activeUsers[i]} ({activeMode[i]}) : {message}")
                     print(user_msg)
@@ -151,20 +146,19 @@ class Server:
             else:
                 print("The message sent from client {username} is empty")
                 break
-            
+        client.close()        
     #function to send message to all clients connected to the server
-    def send_Messages_to_all(self,message):
+    def send_Messages_to_all(self,message):#sachin
         print(message)
         for user in self.activeClients:
-            self.send_message_to_client(user, message)
-            
-            
+            self.send_message_to_client(user, message)           
         #function to send message to a single client
-    def send_message_to_client(self,client,message):
+    def send_message_to_client(self,client,message):#sachin
         client.sendall(bytes(message, 'utf-8'))
-    
+        
+
     #processing the moves recieved from client
-    def process_move(self, client, row, col,board):
+    def process_move_computer(self, client, row, col,board):
         # Check if the spot is already taken or not
         if board[row][col] == ' ':
             board[row][col] = 'X'  # Client's move
@@ -187,9 +181,10 @@ class Server:
             row, col = random.choice(empty)
             board[row][col] = 'O'
             if self.check_win(board, 'O'):
+                client.sendall(f"COMPUTER_MOVE {row} {col}".encode('utf-8'))
                 client.sendall("Server wins!".encode('utf-8'))
             else:
-                client.sendall(f"MOVE {row} {col}".encode('utf-8'))
+                client.sendall(f"COMPUTER_MOVE {row} {col}".encode('utf-8'))
         else:
             client.sendall("Tie game!".encode('utf-8'))
 
@@ -203,12 +198,9 @@ class Server:
             return True
         return False
     #---------------------------------------------------------------------------------
-
-    
     def create_brd(self,):
         game_board = [[' ' for _ in range(3)] for _ in range(3)]
         return game_board
-
     #Function to handle client
     def handle_client(self,client, ):
 
@@ -216,7 +208,6 @@ class Server:
         new_msg = True
         self.board = self.create_brd()
         self.game_boards.append(self.board)
-        
         
         #server will listen for client userName
         while True:

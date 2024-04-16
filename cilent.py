@@ -57,18 +57,17 @@ class Game_window:
         self.gamewindow.send_button = customtkinter.CTkButton(self.gamewindow.entry_frame, text="Send",height=50, width=50, command=lambda:send_message(self.gamewindow,client))
         self.gamewindow.send_button.pack(side=customtkinter.RIGHT, padx=5)
 
-        #reset button
-        br = customtkinter.CTkButton(self.gamewindow, text="Restart",command=lambda:reset_brd())
-        br.place(x=150, y=385)
-        #quit button
-        bq = customtkinter.CTkButton(self.gamewindow, text="Quit",command= lambda: quit_game())   ##quit button does not work as intended make a function that brings back root and quits out of the game window
-        bq.place(x=300, y=385)
+        #starts a thread that listens from messages from server
+        thread = threading.Thread(target=listen_for_messages_from_server, args=(self,client ))
+        thread.start()
 
+        
         self.board = [["" for _ in range(3)] for _ in range(3)]
 
-       
         def button_click(row, col):
-            if self.board[row][col] == "":
+            global winner
+            winner = False
+            if not winner and self.board[row][col] == "":
                 print(f"Button clicked: ({row}, {col})")
                 current_player = "X" if sum(row.count("X") for row in self.board) == sum(row.count("O") for row in self.board) else "O"
                 # Update the board
@@ -76,7 +75,6 @@ class Game_window:
                 # Update the button text to the current player
                 buttons[row][col].configure(text=current_player)
                 send_move(row,col)
-
         #send the move made by the user
         def send_move(row, col):
             # Convert row and column values to integers
@@ -94,7 +92,6 @@ class Game_window:
             # Encode and send the message to the server
             client.send(bytes(message, 'utf-8'))  
 
-
         def create_brd():
             global buttons
             buttons = []
@@ -110,13 +107,13 @@ class Game_window:
                 buttons.append(row_buttons)
         
         create_brd()
-        
-            
-        def highlight_winning_buttons(coords):
-            for row, col in coords:
-                buttons[row][col].configure(fg_color="green")
 
-        
+        #reset button
+        br = customtkinter.CTkButton(self.gamewindow, text="Restart",command=lambda:reset_brd())
+        br.place(x=150, y=385)
+        #quit button
+        bq = customtkinter.CTkButton(self.gamewindow, text="Quit",command= lambda: quit_game())   ##quit button does not work as intended make a function that brings back root and quits out of the game window
+        bq.place(x=300, y=385)                     
         def quit_game():
             disconnect(client)
             print('disconnected from server')
@@ -125,7 +122,7 @@ class Game_window:
 
             client.shutdown(socket.SHUT_RDWR)
             client.close()
-
+            
         def reset_brd():
             root.username = root.userName_entry.get()
             reset_msg = "RESET"
@@ -136,9 +133,7 @@ class Game_window:
             client.send(bytes(reset_msg,'utf-8'))
             
             create_brd()
-            self.board = [["" for _ in range(3)] for _ in range(3)]
-
-           
+            self.board = [["" for _ in range(3)] for _ in range(3)]          
            
         def disconnect(client):
             root.username = root.userName_entry.get()
@@ -151,10 +146,6 @@ class Game_window:
             
             exit_msg = f'{len(exit_msg):<{HEADERSIZE}}' + exit_msg
             client.send(bytes(exit_msg,'utf-8'))
-
-        #starts a thread that listens from messages from server
-        thread = threading.Thread(target=listen_for_messages_from_server, args=(self,client ))
-        thread.start()
 
             
 
@@ -207,7 +198,7 @@ def enter_game():
 #function that is used to connect the client to the server
 def connect(self):
 
-    #Generate a random IPv4 address while keeping the first octet as '127'
+        #Generate a random IPv4 address while keeping the first octet as '127'
     def generate_random_ipv4_address():
         octets = ['127']
         for i in range(1, 4):
@@ -220,9 +211,6 @@ def connect(self):
 
     ipAddress = generate_random_ipv4_address()
     portNum = generate_random_port_number() 
-
-    print(ipAddress)
-    print(portNum)
 
         #Binding socket to IP and Port
     try:
@@ -256,8 +244,14 @@ def connect(self):
     except:
         messagebox.showerror("Unable to connect to server", f"Unable to connect to server {self.HOST} {self.PORT}")
         root.mainloop()
-
-
+def highlight_winning_buttons(coords):
+    for row, col in coords:
+        buttons[row][col].configure(fg_color="green")
+        
+def disable_all_buttons():
+    for row in buttons:
+        for button in row:
+            button.configure(state="disabled")
 # listens for message from all active clients
 def  listen_for_messages_from_server(self,client):
     #runs in an infinite loop to listen for messages
@@ -271,7 +265,7 @@ def  listen_for_messages_from_server(self,client):
                 #adds into Label
                 add_onlineUser(self.gamewindow,message)
                 message = ''
-            elif message.startswith("MOVE"):
+            elif message.startswith("COMPUTER_MOVE"):
                 _, row_str, col_str = message.split()
                 row = int(row_str)
                 col = int(col_str)
@@ -280,19 +274,44 @@ def  listen_for_messages_from_server(self,client):
                 self.board[row][col] = current_player
                 # Update the button text to the current player
                 buttons[row][col].configure(text=current_player)
-            elif message.startswith("You win!"):
-                #messagebox to send if user wins
-                pass
-            elif message.startswith("Tie game!"):
-                #messagebox to send if tie happens
-                pass
-            elif message.startswith("Server wins!"):
-                #messagebox to sebd if server wins
-                pass
-            else:
-                add_message(self.gamewindow,message)
-                message = ''
+            elif message.startswith("You win!") or message.startswith("Server wins!") or message.startswith("Tie game!"):
+                for i in range(3):
+                    if self.board[i][0] == self.board[i][1] == self.board[i][2] != "":
+                        winner = True
+                        highlight_winning_buttons([(i, 0), (i, 1), (i, 2)])
+                        messagebox.showinfo("Winner", f"Player {self.board[i][0]} is the winner")
 
+                # Vertical
+                for i in range(3):
+                    if self.board[0][i] == self.board[1][i] == self.board[2][i] != "":
+                        winner = True
+                        highlight_winning_buttons([(0, i), (1, i), (2, i)])
+                        messagebox.showinfo("Winner", f"Player {self.board[0][i]} is the winner")                   
+
+                # Diagonals
+                if self.board[0][0] == self.board[1][1] == self.board[2][2] != "":
+
+                    winner = True
+                    messagebox.showinfo("Winner", f"Player {self.board[0][0]} is the winner")
+                    highlight_winning_buttons([(0, 0), (1, 1), (2, 2)])
+
+                elif self.board[0][2] == self.board[1][1] == self.board[2][0] != "":
+                    winner = True
+                    messagebox.showinfo("Winner", f"Player {self.board[0][2]} is the winner")
+                    highlight_winning_buttons([(0, 2), (1, 1), (2, 0)])
+                else:
+                    add_message(self.gamewindow,message)
+                    message = ''
+                disable_all_buttons()
+            elif message.startswith("MULTIPLAYER_MOVE"):
+                _, row_str, col_str = message.split()
+                row = int(row_str)
+                col = int(col_str)
+                current_player = "X" if sum(row.count("X") for row in self.board) == sum(row.count("O") for row in self.board) else "O"
+                # Update the board
+                self.board[row][col] = current_player
+                # Update the button text to the current player
+                buttons[row][col].configure(text=current_player)
 #adds message in message box
 def add_message(self,message):
     self.textbox.configure(state=customtkinter.NORMAL)
