@@ -19,7 +19,7 @@ class Server:
         self.HEADERSIZE = 10
         self.game_board = [[' ' for _ in range(3)] for _ in range(3)]
         self.game_boards = []
-
+        self.game_session = []
         #if user sends this hashed string it will exit program
         #probablity (approx) = 3.421×10^−72 %
         self.EXIT_STRING = 'a72b20062ec2c47ab2ceb97ac1bee818f8b6c6cb'
@@ -43,7 +43,7 @@ class Server:
             client, address = self.server.accept()
             print(f"successfully connected client ({address[0]},{address[1]})")
             threading.Thread(target=self.handle_client(client,)).start()
-            
+          
     #listen_fro_msg_implentation
     def listen_for_msg(self, client, activeUsers, activeMode, activeClients, game_boards):
 
