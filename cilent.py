@@ -113,14 +113,7 @@ class Game_window:
         br.place(x=150, y=385)
         #quit button
         bq = customtkinter.CTkButton(self.gamewindow, text="Quit",command= lambda: quit_game())   ##quit button does not work as intended make a function that brings back root and quits out of the game window
-        bq.place(x=300, y=385)               
-        #check if won
-            
-        def highlight_winning_buttons(coords):
-            for row, col in coords:
-                buttons[row][col].configure(fg_color="green")
-
-        
+        bq.place(x=300, y=385)                     
         def quit_game():
             disconnect(client)
             print('disconnected from server')
@@ -261,7 +254,7 @@ def  listen_for_messages_from_server(self,client):
                 #adds into Label
                 add_onlineUser(self.gamewindow,message)
                 message = ''
-            elif message.startswith("MOVE"):
+            elif message.startswith("COMPUTER_MOVE"):
                 _, row_str, col_str = message.split()
                 row = int(row_str)
                 col = int(col_str)
@@ -299,7 +292,15 @@ def  listen_for_messages_from_server(self,client):
                     add_message(self.gamewindow,message)
                     message = ''
                 disable_all_buttons()
-
+            elif message.startswith("MULTIPLAYER_MOVE"):
+                _, row_str, col_str = message.split()
+                row = int(row_str)
+                col = int(col_str)
+                current_player = "X" if sum(row.count("X") for row in self.board) == sum(row.count("O") for row in self.board) else "O"
+                # Update the board
+                self.board[row][col] = current_player
+                # Update the button text to the current player
+                buttons[row][col].configure(text=current_player)
 #adds message in message box
 def add_message(self,message):
     self.textbox.configure(state=customtkinter.NORMAL)
