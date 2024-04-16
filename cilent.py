@@ -57,17 +57,18 @@ class Game_window:
         self.gamewindow.send_button = customtkinter.CTkButton(self.gamewindow.entry_frame, text="Send",height=50, width=50, command=lambda:send_message(self.gamewindow,client))
         self.gamewindow.send_button.pack(side=customtkinter.RIGHT, padx=5)
 
-        #starts a thread that listens from messages from server
-        thread = threading.Thread(target=listen_for_messages_from_server, args=(self,client ))
-        thread.start()
+        #reset button
+        br = customtkinter.CTkButton(self.gamewindow, text="Restart",command=lambda:reset_brd())
+        br.place(x=150, y=385)
+        #quit button
+        bq = customtkinter.CTkButton(self.gamewindow, text="Quit",command= lambda: quit_game())   ##quit button does not work as intended make a function that brings back root and quits out of the game window
+        bq.place(x=300, y=385)
 
-        
         self.board = [["" for _ in range(3)] for _ in range(3)]
 
+       
         def button_click(row, col):
-            global winner
-            winner = False
-            if not winner and self.board[row][col] == "":
+            if self.board[row][col] == "":
                 print(f"Button clicked: ({row}, {col})")
                 current_player = "X" if sum(row.count("X") for row in self.board) == sum(row.count("O") for row in self.board) else "O"
                 # Update the board
@@ -75,6 +76,7 @@ class Game_window:
                 # Update the button text to the current player
                 buttons[row][col].configure(text=current_player)
                 send_move(row,col)
+
         #send the move made by the user
         def send_move(row, col):
             # Convert row and column values to integers
@@ -92,6 +94,7 @@ class Game_window:
             # Encode and send the message to the server
             client.send(bytes(message, 'utf-8'))  
 
+
         def create_brd():
             global buttons
             buttons = []
@@ -107,14 +110,7 @@ class Game_window:
                 buttons.append(row_buttons)
         
         create_brd()
-
-        #reset button
-        br = customtkinter.CTkButton(self.gamewindow, text="Restart",command=lambda:create_brd())
-        br.place(x=150, y=375)
-        #quit button
-        bq = customtkinter.CTkButton(self.gamewindow, text="Quit",command= lambda: quit_game())   ##quit button does not work as intended make a function that brings back root and quits out of the game window
-        bq.place(x=300, y=375)               
-        #check if won
+        
             
         def highlight_winning_buttons(coords):
             for row, col in coords:
@@ -129,6 +125,19 @@ class Game_window:
 
             client.shutdown(socket.SHUT_RDWR)
             client.close()
+
+        def reset_brd():
+            root.username = root.userName_entry.get()
+            reset_msg = "RESET"
+            root.username = f'{len(root.username):<{HEADERSIZE}}' + root.username
+            client.send(bytes(root.username,'utf-8'))
+            time.sleep(0.1)
+            reset_msg = f'{len(reset_msg):<{HEADERSIZE}}' + reset_msg
+            client.send(bytes(reset_msg,'utf-8'))
+            
+            create_brd()
+            self.board = [["" for _ in range(3)] for _ in range(3)]
+
            
            
         def disconnect(client):
@@ -142,6 +151,10 @@ class Game_window:
             
             exit_msg = f'{len(exit_msg):<{HEADERSIZE}}' + exit_msg
             client.send(bytes(exit_msg,'utf-8'))
+
+        #starts a thread that listens from messages from server
+        thread = threading.Thread(target=listen_for_messages_from_server, args=(self,client ))
+        thread.start()
 
             
 
@@ -194,7 +207,7 @@ def enter_game():
 #function that is used to connect the client to the server
 def connect(self):
 
-        #Generate a random IPv4 address while keeping the first octet as '127'
+    #Generate a random IPv4 address while keeping the first octet as '127'
     def generate_random_ipv4_address():
         octets = ['127']
         for i in range(1, 4):
@@ -207,6 +220,9 @@ def connect(self):
 
     ipAddress = generate_random_ipv4_address()
     portNum = generate_random_port_number() 
+
+    print(ipAddress)
+    print(portNum)
 
         #Binding socket to IP and Port
     try:

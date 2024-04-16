@@ -16,8 +16,10 @@ class Server:
         self.activeClients = []
         self.activeUsers = []
         self.activeModes = []
+        self.game_boards = []
         self.HEADERSIZE = 10
-        self.game_board = [[' ' for _ in range(3)] for _ in range(3)]
+
+    
 
         #if user sends this hashed string it will exit program
         #probablity (approx) = 3.421×10^−72 %
@@ -42,10 +44,11 @@ class Server:
             client, address = self.server.accept()
             print(f"successfully connected client ({address[0]},{address[1]})")
             threading.Thread(target=self.handle_client(client,)).start()
+
+
             
-    
     #listen_fro_msg_implentation
-    def listen_for_msg(self, client, activeUsers, activeMode, activeClients, board):
+    def listen_for_msg(self, client, activeUsers, activeMode, activeClients,game_boards):
 
         full_msg = ''
         new_msg = True
@@ -107,6 +110,19 @@ class Server:
                     i = 0
                     return
                 
+                elif message == "RESET":
+                    print(game_boards[i])
+                    game_boards[i] = self.create_brd()
+                    print(game_boards[i])
+                    
+                    #reset server board help
+
+                    new_msg = True
+                    full_msg = ''
+                    i = 0
+                    
+
+                
                 elif message.startswith("MOVE"):
                     # Extract the row and column from the move message
                     print("Received move:", message)
@@ -115,7 +131,7 @@ class Server:
                     col = int(col_str)
 
                     # Process the move
-                    self.process_move(self.activeClients[i], row,col,board)
+                    self.process_move(self.activeClients[i], row,col,self.game_boards[i])
 
                     new_msg = True
                     full_msg = ''
@@ -188,12 +204,18 @@ class Server:
         return False
     #---------------------------------------------------------------------------------
 
+    
+    def create_brd(self,):
+        game_board = [[' ' for _ in range(3)] for _ in range(3)]
+        return game_board
+
     #Function to handle client
     def handle_client(self,client, ):
 
         full_msg = ''
         new_msg = True
-        board = [[' ' for _ in range(3)] for _ in range(3)]
+        self.board = self.create_brd()
+        self.game_boards.append(self.board)
         
         
         #server will listen for client userName
@@ -246,7 +268,7 @@ class Server:
 
             break
             
-        threading.Thread(target=self.listen_for_msg, args=(client, self.activeUsers, self.activeModes, self.activeClients,board)).start()
+        threading.Thread(target=self.listen_for_msg, args=(client, self.activeUsers, self.activeModes, self.activeClients,self.game_boards)).start()
             
     #function to send message to a single client
     """def send_message_to_client(self,client,message):
