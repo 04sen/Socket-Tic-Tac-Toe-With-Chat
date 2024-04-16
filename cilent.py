@@ -274,6 +274,7 @@ def  listen_for_messages_from_server(self,client):
                 self.board[row][col] = current_player
                 # Update the button text to the current player
                 buttons[row][col].configure(text=current_player)
+
             elif message.startswith("You win!") or message.startswith("Server wins!") or message.startswith("Tie game!"):
                 for i in range(3):
                     if self.board[i][0] == self.board[i][1] == self.board[i][2] != "":
@@ -303,6 +304,7 @@ def  listen_for_messages_from_server(self,client):
                     add_message(self.gamewindow,message)
                     message = ''
                 disable_all_buttons()
+                
             elif message.startswith("MULTIPLAYER_MOVE"):
                 _, row_str, col_str = message.split()
                 row = int(row_str)
@@ -312,6 +314,11 @@ def  listen_for_messages_from_server(self,client):
                 self.board[row][col] = current_player
                 # Update the button text to the current player
                 buttons[row][col].configure(text=current_player)
+
+            else:
+                add_message(self.gamewindow,message)
+                message = ''
+
 #adds message in message box
 def add_message(self,message):
     self.textbox.configure(state=customtkinter.NORMAL)
