@@ -110,16 +110,17 @@ class Game_window:
 
         #reset button
         br = customtkinter.CTkButton(self.gamewindow, text="Restart",command=lambda:create_brd())
-        br.place(x=150, y=375)
+        br.place(x=150, y=385)
         #quit button
         bq = customtkinter.CTkButton(self.gamewindow, text="Quit",command= lambda: quit_game())   ##quit button does not work as intended make a function that brings back root and quits out of the game window
-        bq.place(x=300, y=375)               
+        bq.place(x=300, y=385)               
         #check if won
             
         def highlight_winning_buttons(coords):
             for row, col in coords:
                 buttons[row][col].configure(fg_color="green")
 
+        
         def quit_game():
             disconnect(client)
             print('disconnected from server')
@@ -128,7 +129,8 @@ class Game_window:
 
             client.shutdown(socket.SHUT_RDWR)
             client.close()
-                    
+           
+           
         def disconnect(client):
             root.username = root.userName_entry.get()
             exit_msg = EXIT_STRING
@@ -140,6 +142,8 @@ class Game_window:
             
             exit_msg = f'{len(exit_msg):<{HEADERSIZE}}' + exit_msg
             client.send(bytes(exit_msg,'utf-8'))
+
+            
 
 #function send_message sends the message to all other clients
 def send_message(self,client):
@@ -168,6 +172,7 @@ def send_message(self,client):
         self.entry.delete(0, customtkinter.END)
         pass
 
+
 def enter_game():
 
     username = root.userName_entry.get()
@@ -184,6 +189,7 @@ def enter_game():
 
 
         c1=Game_window()
+
 
 #function that is used to connect the client to the server
 def connect(self):
@@ -234,8 +240,14 @@ def connect(self):
     except:
         messagebox.showerror("Unable to connect to server", f"Unable to connect to server {self.HOST} {self.PORT}")
         root.mainloop()
-
-
+def highlight_winning_buttons(coords):
+    for row, col in coords:
+        buttons[row][col].configure(fg_color="green")
+        
+def disable_all_buttons():
+    for row in buttons:
+        for button in row:
+            button.configure(state="disabled")
 # listens for message from all active clients
 def  listen_for_messages_from_server(self,client):
     #runs in an infinite loop to listen for messages
@@ -249,8 +261,7 @@ def  listen_for_messages_from_server(self,client):
                 #adds into Label
                 add_onlineUser(self.gamewindow,message)
                 message = ''
-            
-            if message.startswith("MOVE"):
+            elif message.startswith("MOVE"):
                 _, row_str, col_str = message.split()
                 row = int(row_str)
                 col = int(col_str)
@@ -259,19 +270,35 @@ def  listen_for_messages_from_server(self,client):
                 self.board[row][col] = current_player
                 # Update the button text to the current player
                 buttons[row][col].configure(text=current_player)
-            elif message.startswith("You win!"):
-                #messagebox to send if user wins
-                pass
-            elif message.startswith("Tie game!"):
-                #messagebox to send if tie happens
-                pass
-            elif message.startswith("Server wins!"):
-                #messagebox to sebd if server wins
-                pass
-            else:
-                add_message(self.gamewindow,message)
-                message = ''
+            elif message.startswith("You win!") or message.startswith("Server wins!") or message.startswith("Tie game!"):
+                for i in range(3):
+                    if self.board[i][0] == self.board[i][1] == self.board[i][2] != "":
+                        winner = True
+                        highlight_winning_buttons([(i, 0), (i, 1), (i, 2)])
+                        messagebox.showinfo("Winner", f"Player {self.board[i][0]} is the winner")
 
+                # Vertical
+                for i in range(3):
+                    if self.board[0][i] == self.board[1][i] == self.board[2][i] != "":
+                        winner = True
+                        highlight_winning_buttons([(0, i), (1, i), (2, i)])
+                        messagebox.showinfo("Winner", f"Player {self.board[0][i]} is the winner")                   
+
+                # Diagonals
+                if self.board[0][0] == self.board[1][1] == self.board[2][2] != "":
+
+                    winner = True
+                    messagebox.showinfo("Winner", f"Player {self.board[0][0]} is the winner")
+                    highlight_winning_buttons([(0, 0), (1, 1), (2, 2)])
+
+                elif self.board[0][2] == self.board[1][1] == self.board[2][0] != "":
+                    winner = True
+                    messagebox.showinfo("Winner", f"Player {self.board[0][2]} is the winner")
+                    highlight_winning_buttons([(0, 2), (1, 1), (2, 0)])
+                else:
+                    add_message(self.gamewindow,message)
+                    message = ''
+                disable_all_buttons()
 
 #adds message in message box
 def add_message(self,message):

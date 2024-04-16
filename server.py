@@ -18,6 +18,7 @@ class Server:
         self.activeModes = []
         self.HEADERSIZE = 10
         self.game_board = [[' ' for _ in range(3)] for _ in range(3)]
+
         #if user sends this hashed string it will exit program
         #probablity (approx) = 3.421×10^−72 %
         self.EXIT_STRING = 'a72b20062ec2c47ab2ceb97ac1bee818f8b6c6cb'
@@ -41,10 +42,8 @@ class Server:
             client, address = self.server.accept()
             print(f"successfully connected client ({address[0]},{address[1]})")
             threading.Thread(target=self.handle_client(client,)).start()
-            
-    
     #listen_fro_msg_implentation
-    def listen_for_msg(self, client, activeUsers, activeMode,board):
+    def listen_for_msg(self, client, activeUsers, activeMode, activeClients, board):
 
         full_msg = ''
         new_msg = True
@@ -98,6 +97,9 @@ class Server:
                     self.send_Messages_to_all(user_msg)
                     activeUsers.pop(i)
                     activeMode.pop(i)
+                    activeClients.pop(i)
+                    current_activeUsers = f'{activeUsers}'
+                    self.send_Messages_to_all(current_activeUsers)
                     new_msg = True
                     full_msg = ''
                     i = 0
@@ -111,7 +113,7 @@ class Server:
                     col = int(col_str)
 
                     # Process the move
-                    self.process_move(self.activeClients[i], row,col,board) 
+                    self.process_move(self.activeClients[i], row,col,board)
 
                     new_msg = True
                     full_msg = ''
@@ -136,13 +138,13 @@ class Server:
     def send_Messages_to_all(self,message):
         print(message)
         for user in self.activeClients:
-             self.send_message_to_client(user, message)
-             
-    
+            self.send_message_to_client(user, message)
+            
             
         #function to send message to a single client
     def send_message_to_client(self,client,message):
         client.sendall(bytes(message, 'utf-8'))
+    
     #processing the moves recieved from client
     def process_move(self, client, row, col,board):
         # Check if the spot is already taken or not
@@ -155,38 +157,25 @@ class Server:
                 client.sendall("Tie game!".encode('utf-8'))
                 return  # Stop further processing as the game is a tie
             else:
-                self.server_move(client)  # Server makes a move if game not ended
+                self.server_move(board, client)  # Server makes a move if game not ended
         else:
             client.sendall("Invalid move".encode('utf-8'))
 
-
     def server_move(self, board, client):
-        # Simple random move logic by the server
+    # Simple random move logic by the server
         import random
         empty = [(r, c) for r in range(3) for c in range(3) if board[r][c] == ' ']
         if empty:
             row, col = random.choice(empty)
             board[row][col] = 'O'
             if self.check_win(board, 'O'):
+                client.sendall(f"MOVE {row} {col}".encode('utf-8'))
                 client.sendall("Server wins!".encode('utf-8'))
             else:
                 client.sendall(f"MOVE {row} {col}".encode('utf-8'))
         else:
             client.sendall("Tie game!".encode('utf-8'))
-    def server_move(self, client):
-        import random
-        empty = [(r, c) for r in range(3) for c in range(3) if self.game_board[r][c] == ' ']
-        if empty:
-            row, col = random.choice(empty)
-            self.game_board[row][col] = 'O'  # Server's move
-            if self.check_win(self.game_board, 'O'):
-                client.sendall("Server wins!".encode('utf-8'))
-            elif not any(' ' in row for row in self.game_board):  # Check if tie
-                client.sendall("Tie game!".encode('utf-8'))
-            else:
-                client.sendall(f"MOVE {row} {col}".encode('utf-8'))  # Inform client of server's move
-        else:
-            client.sendall("Tie game!".encode('utf-8'))
+
 
     def check_win(self, board, player):
         # Check horizontal, vertical and diagonal wins
@@ -197,14 +186,15 @@ class Server:
             return True
         return False
     #---------------------------------------------------------------------------------
+
     #Function to handle client
     def handle_client(self,client, ):
 
         full_msg = ''
         new_msg = True
-
-        
         board = [[' ' for _ in range(3)] for _ in range(3)]
+        
+        
         #server will listen for client userName
         while True:
             #Receives upto 1024 byte of data
@@ -246,16 +236,16 @@ class Server:
                 new_msg = True
                 full_msg = ''
   
-            message = f'{self.activeUsers}' + ", "
+            activeUsers = f'{self.activeUsers}'
             send_msg = f'{username} joined on {menu} Mode!'
 
-            self.send_Messages_to_all(message)
+            self.send_Messages_to_all(activeUsers)
             time.sleep(1)
             self.send_Messages_to_all(send_msg)
 
             break
             
-        threading.Thread(target=self.listen_for_msg, args=(client, self.activeUsers, self.activeModes,board)).start()
+        threading.Thread(target=self.listen_for_msg, args=(client, self.activeUsers, self.activeModes, self.activeClients,board)).start()
             
     #function to send message to a single client
     """def send_message_to_client(self,client,message):
