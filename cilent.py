@@ -27,13 +27,14 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 class Game_window:
     def __init__(self):
+        self.player_status = " " 
         self.gamewindow = customtkinter.CTkToplevel()
         self.gamewindow.geometry("850x600")
         self.gamewindow.title("TikTacToe- Welcome {0}".format(root.userName_entry.get()))
         self.gamewindow.resizable(False, False)
         self.gamewindow.frame = customtkinter.CTkFrame(self.gamewindow)
         self.gamewindow.frame.grid(row=3, column=3, padx=150, pady=50)
-         #creation of message box frame
+        #creation of message box frame
         self.gamewindow.messagebox_frame = customtkinter.CTkFrame(self.gamewindow)
         self.gamewindow.messagebox_frame.place(x=500, y=100)
         #creation of message box field where all the messages can be seen 
@@ -47,6 +48,10 @@ class Game_window:
         self.gamewindow.onlineUser.insert(customtkinter.END,"Online Users:\n")
         self.gamewindow.onlineUser.configure(state=customtkinter.DISABLED)
         self.gamewindow.onlineUser.pack(side=customtkinter.RIGHT, padx=5 )
+        #creation of Player Status Label:
+        self.gamewindow.player_status_label = customtkinter.CTkLabel(self.gamewindow, text= "Waiting for Connection...", 
+                                                                     fg_color="#3b3b3b",font=("Helvetica",15), padx =10, pady =10,corner_radius=5)
+        self.gamewindow.player_status_label.place(x=220 ,y=450) 
         #creation of entry field
         self.gamewindow.entry_frame = customtkinter.CTkFrame(self.gamewindow)
         self.gamewindow.entry_frame.place(x=500, y=520)
@@ -56,6 +61,13 @@ class Game_window:
         #creation of send button
         self.gamewindow.send_button = customtkinter.CTkButton(self.gamewindow.entry_frame, text="Send",height=50, width=50, command=lambda:send_message(self.gamewindow,client))
         self.gamewindow.send_button.pack(side=customtkinter.RIGHT, padx=5)
+
+         #reset button
+        br = customtkinter.CTkButton(self.gamewindow, text="Restart",command=lambda:reset_brd())
+        br.place(x=150, y=385)
+        #quit button
+        bq = customtkinter.CTkButton(self.gamewindow, text="Quit",command= lambda: quit_game())   ##quit button does not work as intended make a function that brings back root and quits out of the game window
+        bq.place(x=300, y=385)  
 
         #starts a thread that listens from messages from server
         thread = threading.Thread(target=listen_for_messages_from_server, args=(self,client ))
@@ -67,6 +79,7 @@ class Game_window:
         def button_click(row, col):
             global winner
             winner = False
+            #checks if button is clicked
             if not winner and self.board[row][col] == "":
                 print(f"Button clicked: ({row}, {col})")
                 current_player = "X" if sum(row.count("X") for row in self.board) == sum(row.count("O") for row in self.board) else "O"
@@ -81,11 +94,16 @@ class Game_window:
             row_int = int(row)
             col_int = int(col)
             
-            root.username = root.userName_entry.get()
-            root.username = f'{len(root.username):<{HEADERSIZE}}' + root.username
-            client.send(bytes(root.username,'utf-8'))
-            time.sleep(0.1)
             # Construct the message string with integers
+            if self.player_status == " X":
+                message = f"X MOVE {row_int} {col_int}"
+                message = f'{len(message):< {HEADERSIZE }}' + message
+                client.send(bytes(message, 'utf-8'))  
+                disable_all_buttons()
+            elif self.player_status == "O":
+                message = f" O MOVE {row_int} {col_int}"
+                message = f'{len(message):< {HEADERSIZE }}' + message
+
             message = f"MOVE {row_int} {col_int}"
             message = f'{len(message):< {HEADERSIZE }}' + message
 
@@ -107,13 +125,9 @@ class Game_window:
                 buttons.append(row_buttons)
         
         create_brd()
+        disable_all_buttons()
 
-        #reset button
-        br = customtkinter.CTkButton(self.gamewindow, text="Restart",command=lambda:reset_brd())
-        br.place(x=150, y=385)
-        #quit button
-        bq = customtkinter.CTkButton(self.gamewindow, text="Quit",command= lambda: quit_game())   ##quit button does not work as intended make a function that brings back root and quits out of the game window
-        bq.place(x=300, y=385)                     
+                          
         def quit_game():
             disconnect(client)
             print('disconnected from server')
@@ -124,11 +138,7 @@ class Game_window:
             client.close()
             
         def reset_brd():
-            root.username = root.userName_entry.get()
             reset_msg = "RESET"
-            root.username = f'{len(root.username):<{HEADERSIZE}}' + root.username
-            client.send(bytes(root.username,'utf-8'))
-            time.sleep(0.1)
             reset_msg = f'{len(reset_msg):<{HEADERSIZE}}' + reset_msg
             client.send(bytes(reset_msg,'utf-8'))
             
@@ -158,10 +168,10 @@ def send_message(self,client):
     
     #checks if message is not empty
     if self.message != '':
-        root.username = f'{len(root.username):<{HEADERSIZE}}' + root.username
+        """root.username = f'{len(root.username):<{HEADERSIZE}}' + root.username
         client.send(bytes(root.username,'utf-8'))
 
-        time.sleep(0.1)
+        time.sleep(0.1)"""
 
         self.message = f'{len(self.message):<{HEADERSIZE}}' + self.message
         #sends message to all active clients 
@@ -180,6 +190,7 @@ def send_message(self,client):
 def enter_game():
 
     username = root.userName_entry.get()
+    
 
     #if username empty then it will display error message to users
     if (username == ''):
@@ -190,8 +201,6 @@ def enter_game():
     else:
         connect(root) # <--  Connect to Server
         root.withdraw() # <-- Withdraw root window
-
-
         c1=Game_window()
 
 
@@ -252,6 +261,12 @@ def disable_all_buttons():
     for row in buttons:
         for button in row:
             button.configure(state="disabled")
+
+def enable_all_buttons():
+    for row in buttons:
+        for button in row:
+            button.configure(state="enabled")
+            
 # listens for message from all active clients
 def  listen_for_messages_from_server(self,client):
     #runs in an infinite loop to listen for messages
@@ -261,7 +276,7 @@ def  listen_for_messages_from_server(self,client):
             print(message)
             
             #checks if message is Active Users
-            if message.startswith("["):
+            if message.startswith("|"):
                 #adds into Label
                 add_onlineUser(self.gamewindow,message)
                 message = ''
@@ -269,11 +284,11 @@ def  listen_for_messages_from_server(self,client):
                 _, row_str, col_str = message.split()
                 row = int(row_str)
                 col = int(col_str)
-                current_player = "X" if sum(row.count("X") for row in self.board) == sum(row.count("O") for row in self.board) else "O"
+                current_display = "X" if sum(row.count("X") for row in self.board) == sum(row.count("O") for row in self.board) else "O"
                 # Update the board
-                self.board[row][col] = current_player
+                self.board[row][col] = current_display
                 # Update the button text to the current player
-                buttons[row][col].configure(text=current_player)
+                buttons[row][col].configure(text=current_display)
 
             elif message.startswith("You win!") or message.startswith("Server wins!") or message.startswith("Tie game!"):
                 for i in range(3):
@@ -305,16 +320,50 @@ def  listen_for_messages_from_server(self,client):
                     message = ''
                 disable_all_buttons()
                 
-            elif message.startswith("MULTIPLAYER_MOVE"):
-                _, row_str, col_str = message.split()
-                row = int(row_str)
-                col = int(col_str)
-                current_player = "X" if sum(row.count("X") for row in self.board) == sum(row.count("O") for row in self.board) else "O"
-                # Update the board
-                self.board[row][col] = current_player
-                # Update the button text to the current player
-                buttons[row][col].configure(text=current_player)
-
+            elif message == "You are connected, You are O":
+                self.player_status = "O"
+                self.gamewindow.player_status_label.configure(text="You are Player O\nWait for your Turn")
+                disable_all_buttons()
+                print("Waiting for Move")
+            
+            elif message == "You are connected, You are X":
+                self.player_status = "X"
+                self.gamewindow.player_status_label.configure(text="You are Player X\nMake a MOVE")
+                enable_all_buttons()
+            
+            elif message.startswith("Player X"):
+                if self.player_status == "X":
+                    disable_all_buttons()
+                    self.gamewindow.player_status_label.configure(text="Waiting for Player O")
+                elif self.player_status == "O":
+                    enable_all_buttons()
+                    _, _, row_str, col_str = message.split()
+                    row = int(row_str)
+                    col = int(col_str)
+                    current_display = "X" if sum(row.count("X") for row in self.board) == sum(row.count("O") for row in self.board) else "O"
+                    # Update the board
+                    self.board[row][col] = current_display
+                    # Update the button text to the current player
+                    buttons[row][col].configure(text=current_display)
+                    self.gamewindow.player_status_label.configure(text="Make A Move...")
+                print(message)
+                
+            elif message.startswith("Player O"):
+                if self.player_status == "O":
+                    disable_all_buttons()
+                    self.gamewindow.player_status_label.configure(text="Waiting for Player O")
+                elif self.player_status == "X":
+                    enable_all_buttons()
+                    _, _, row_str, col_str = message.split()
+                    row = int(row_str)
+                    col = int(col_str)
+                    current_display = "X" if sum(row.count("X") for row in self.board) == sum(row.count("O") for row in self.board) else "O"
+                    # Update the board
+                    self.board[row][col] = current_display
+                    # Update the button text to the current player
+                    buttons[row][col].configure(text=current_display)
+                    self.gamewindow.player_status_label.configure(text="Make A Move...")
+                print(message)
             else:
                 add_message(self.gamewindow,message)
                 message = ''

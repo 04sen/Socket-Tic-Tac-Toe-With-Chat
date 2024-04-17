@@ -13,12 +13,11 @@ class Server:
         self.HOST = '127.0.0.1'
         self.PORT = 1234
         self.LIMIT = 20
+        self.activec = []
         self.activeClients = []
-        self.activeUsers = []
-        self.activeModes = []
         self.HEADERSIZE = 10
         self.game_board = [[' ' for _ in range(3)] for _ in range(3)]
-        self.game_boards = []
+        self.internal_boards = []
         self.game_session = []
         #if user sends this hashed string it will exit program
         #probablity (approx) = 3.421×10^−72 %
@@ -45,40 +44,28 @@ class Server:
             threading.Thread(target=self.handle_client(client,)).start()
           
     #listen_fro_msg_implentation
-    def listen_for_msg(self, client, activeUsers, activeMode, activeClients, game_boards):
+    def listen_for_msg(self, client, internal_board):
 
         full_msg = ''
         new_msg = True
         i = 0
-        
+
         #runs in an infinite while loop to keep on listening for messages sent by clients
         while True:
-            #Receives upto 1024 byte of data
-            username = client.recv(1024)
+            for user in self.activec:
+                if user[1] == client:
+                    print("found")
+                    break
+                elif i == self.LIMIT:
+                    print('not found')
+                    break
+                i = i + 1
+            
+            print(i)
 
-            if new_msg:
-                print(f"new message length: {username[:self.HEADERSIZE]}")
-                msglen = int(username[:self.HEADERSIZE])
-                new_msg = False
-
-            full_msg += username.decode("utf=8")
-
-            if len(full_msg) - self.HEADERSIZE == msglen:
-                print("Full message recvd")
-                username = full_msg[self.HEADERSIZE:]
-                print(username)
-                
-                for user in activeUsers:
-                    if user == username:
-                        print('found')
-                        break
-                    elif i == self.LIMIT:
-                        print('exit')
-                        break
-                    i = i + 1
-
-                new_msg = True
-                full_msg = ''
+            if self.activec[i][2] == "HUMAN":
+                self.pair_clients(self.activeClients)
+            
             
             #Receives upto 1024 byte of data and decodes using utf-8
             message = client.recv(1024)
@@ -93,60 +80,60 @@ class Server:
             if len(full_msg) - self.HEADERSIZE == msglen:
                 print("Full message recvd")
                 message = full_msg[self.HEADERSIZE:]
-                
+               
                 if message == self.EXIT_STRING:
-                    user_msg = (f"{activeUsers[i]} ({activeMode[i]}) has disconnected!")
-                    self.send_Messages_to_all(user_msg)
-                    activeUsers.pop(i)
-                    activeMode.pop(i)
-                    activeClients.pop(i)
-                    current_activeUsers = f'{activeUsers}'
-                    self.send_Messages_to_all(current_activeUsers)
-                    new_msg = True
-                    full_msg = ''
-                    i = 0
-                    return
+                        
+                        user_msg = (f"{self.activec[i][0]} ({self.activec[i][2]}) has disconnected!")
+                        self.send_Messages_to_all(user_msg)
+                        self.activec.pop(i)
+                        print(self.activec)
+                        current_activeUsers = ""
+                        for user in self.activec:
+                            current_activeUsers = f'| {user[0]} |' + current_activeUsers
+                        self.send_Messages_to_all(current_activeUsers)
+                        new_msg = True
+                        full_msg = ''
+                        i = 0
+                        return
+                
                 elif message == "RESET":
-                    print(game_boards[i])
-                    game_boards[i] = self.create_brd()
-                    print(game_boards[i])
-                    
-                    #reset server board help
-
+                    internal_board[i] = self.create_brd() #Resets the server side Board
+            
                     new_msg = True
                     full_msg = ''
                     i = 0
-                elif message.startswith("MOVE") and activeMode[i] == "COMPUTER":
+
+                elif message.startswith("MOVE") and self.activec[i][2] == "COMPUTER":
                     # Extract the row and column from the move message
                     print("Received move:", message)
                     _, row_str, col_str = message.split()
                     row = int(row_str)
                     col = int(col_str)
-
                     # Process the move
-                    self.process_move_computer(self.activeClients[i], row,col,self.game_boards[i])
-
+                    self.process_move_computer(self.activec[i][1], row,col,self.internal_boards[i])
                     new_msg = True
                     full_msg = ''
                     i = 0
-                elif message.startswith("MOVE") and activeMode[i] == "HUMAN":
-                    
-                    pass
+
+                elif message.startswith("MOVE") and self.activec[i][2] == "HUMAN":
+                    self.process_move_human(client,message)
+                    new_msg = True
+                    full_msg = ''
+                    i = 0
                 else:
-                    user_msg = (f"{activeUsers[i]} ({activeMode[i]}) : {message}")
+                    user_msg = (f"{self.activec[i][0]} ({self.activec[i][2]}) : {message}")
                     print(user_msg)
                     self.send_Messages_to_all(user_msg)
 
                 new_msg = True
                 full_msg = ''
                 i = 0
-                
-            
-            #else will prompt that message from client is empty
+
             else:
                 print("The message sent from client {username} is empty")
                 break
-        client.close()        
+        client.close() 
+
     #function to send message to all clients connected to the server
     def send_Messages_to_all(self,message):#sachin
         print(message)
@@ -155,9 +142,35 @@ class Server:
         #function to send message to a single client
     def send_message_to_client(self,client,message):#sachin
         client.sendall(bytes(message, 'utf-8'))
-        
 
+    def pair_clients(self,activeClients):
+        if len(activeClients) >= 2:
+            client1 = activeClients.pop(0)
+            client2 = activeClients.pop(0)
+            self.shared_board = self.create_brd()
+            self.game_session.append((client1,client2,self.shared_board))
+            self.send_message_to_client(client1, "You are connected, You are X")
+            self.send_message_to_client(client2, "You are connected, You are O")      
+
+    def process_move_human(self,client,message):
+        for session in self.game_session:
+            if client in session:
+                _, _, self.shared_board = session
+                _, row_str, col_str = message.split()
+                row, col = int(row_str), int(col_str)
+                player = 'X' if session.index(client) == 0 else 'O'
+                if  self.shared_board[row][col] == ' ':
+                    self.shared_board[row][col] = player
+                    self.update_game(session, f'Player {player} {row} {col}')
+                    break
+
+    def update_game(self,session,message):
+        client1, client2, _ = session
+        for client in (client1,client2):
+            self.send_message_to_client(client,message)
+    
     #processing the moves recieved from client
+    
     def process_move_computer(self, client, row, col,board):
         # Check if the spot is already taken or not
         if board[row][col] == ' ':
@@ -206,8 +219,7 @@ class Server:
 
         full_msg = ''
         new_msg = True
-        self.board = self.create_brd()
-        self.game_boards.append(self.board)
+        
         
         #server will listen for client userName
         while True:
@@ -224,8 +236,6 @@ class Server:
             if len(full_msg) - self.HEADERSIZE == msglen:
                 print("Full message recvd")
                 username = full_msg[self.HEADERSIZE:]
-                self.activeClients.append(client)
-                self.activeUsers.append(username)
                 user_joined_msg = (f"{username}: joined!")
                 print(user_joined_msg)
                 new_msg = True
@@ -244,30 +254,37 @@ class Server:
             if len(full_msg) - self.HEADERSIZE == msglen:
                 print("Full message recvd")
                 menu = full_msg[self.HEADERSIZE:]
-                self.activeModes.append(menu)
                 user_mode_msg = (f"On Mode: {menu}")
                 print(user_mode_msg)
                 new_msg = True
                 full_msg = ''
+
+
+            self.activec.append((username, client, menu) )
+            self.activeClients.append(client)
   
-            activeUsers = f'{self.activeUsers}'
             send_msg = f'{username} joined on {menu} Mode!'
 
-            self.send_Messages_to_all(activeUsers)
+
+            current_activeUsers = ""
+            for user in self.activec:
+                current_activeUsers = f'| {user[0]} |' + current_activeUsers
+
+            self.send_Messages_to_all(current_activeUsers)
+
             time.sleep(1)
+            if menu == "COMPUTER":
+                self.board = self.create_brd()
+                self.internal_boards.append(self.board)
+                self.send_message_to_client(client,"You are connected, You are X")
+            time.sleep(0.1)
             self.send_Messages_to_all(send_msg)
 
             break
             
-        threading.Thread(target=self.listen_for_msg, args=(client, self.activeUsers, self.activeModes, self.activeClients,self.game_boards)).start()
+        threading.Thread(target=self.listen_for_msg, args=(client,self.internal_boards)).start()
             
-    #function to send message to a single client
-    """def send_message_to_client(self,client,message):
-        client.sendall(message.encode('utf-8'))"""
 
-    #function to Handle TicTacToe Logic
-    """def tictactoe(message):
-        print('Handle TicTacToe Logic')"""
 
         
 #Calling Server class
