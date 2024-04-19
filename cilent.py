@@ -63,11 +63,14 @@ class Game_window:
         self.gamewindow.send_button.pack(side=customtkinter.RIGHT, padx=5)
 
          #reset button
-        br = customtkinter.CTkButton(self.gamewindow, text="Restart",command=lambda:reset_brd())
-        br.place(x=150, y=385)
+        self.gamewindow.br = customtkinter.CTkButton(self.gamewindow, text="Restart",command=lambda:reset_brd())
+        self.gamewindow.br.place(x=150, y=385)
         #quit button
         bq = customtkinter.CTkButton(self.gamewindow, text="Quit",command= lambda: quit_game())   ##quit button does not work as intended make a function that brings back root and quits out of the game window
         bq.place(x=300, y=385)  
+
+        if root.menu.get() == "HUMAN":
+            self.gamewindow.br.configure(state="disabled")
 
         #starts a thread that listens from messages from server
         thread = threading.Thread(target=listen_for_messages_from_server, args=(self,client ))
@@ -202,6 +205,7 @@ def enter_game():
         connect(root) # <--  Connect to Server
         root.withdraw() # <-- Withdraw root window
         c1=Game_window()
+        
 
 
 #function that is used to connect the client to the server
@@ -248,11 +252,14 @@ def connect(self):
         client.send(bytes(self.menuOption,'utf-8'))
 
         print("Successfully connected to server")
+
         
     #if the user wasnt able to connect to server then it will show error message
     except:
         messagebox.showerror("Unable to connect to server", f"Unable to connect to server {self.HOST} {self.PORT}")
         root.mainloop()
+
+
 def highlight_winning_buttons(coords):
     for row, col in coords:
         buttons[row][col].configure(fg_color="green")
@@ -290,7 +297,7 @@ def  listen_for_messages_from_server(self,client):
                 # Update the button text to the current player
                 buttons[row][col].configure(text=current_display)
 
-            elif message.startswith("You win!") or message.startswith("Server wins!") or message.startswith("Tie game!"):
+            elif message.startswith("You win!") or message.startswith("Server wins!") or message.startswith("Tie game!") or message.startswith("X wins!") or message.startswith("O wins!"):
                 for i in range(3):
                     if self.board[i][0] == self.board[i][1] == self.board[i][2] != "":
                         winner = True
@@ -384,6 +391,8 @@ def add_onlineUser(self,message):
     self.onlineUser.configure(state=customtkinter.DISABLED)
     self.onlineUser.pack(side=customtkinter.RIGHT, padx=5 )
    
+def disable_reset_btn(self):
+    self.br.configure(state="disabled")
 
 #creation of userFrame
 root.userName_frame = customtkinter.CTkFrame(root,)

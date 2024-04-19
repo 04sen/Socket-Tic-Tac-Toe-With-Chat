@@ -65,6 +65,19 @@ class Server:
 
             if self.activec[i][2] == "HUMAN":
                 self.pair_clients(self.activeClients)
+                
+                
+                for session in self.game_session:
+                    if client in session:
+                        if self.check_win(session[2], "X"):
+                            self.send_Messages_to_all("X wins!")
+                            return  # Stop further processing as the game is over
+                        elif self.check_win(session[2], "O"):
+                            self.send_Messages_to_all("O wins!")
+                            return  # Stop further processing as the game is a tie
+                        elif not any(' ' in row for row in session[2]):
+                            self.send_Messages_to_all("Tie game!")
+                            return  # Stop further processing as the game is a tie
             
             
             #Receives upto 1024 byte of data and decodes using utf-8
@@ -116,10 +129,13 @@ class Server:
                     i = 0
 
                 elif message.startswith("MOVE") and self.activec[i][2] == "HUMAN":
-                    self.process_move_human(client,message)
-                    new_msg = True
-                    full_msg = ''
-                    i = 0
+                    for session in self.game_session:
+                        if client in session:
+                            self.process_move_human(client,message, session[2])
+                            print(session[2])
+                            new_msg = True
+                            full_msg = ''
+                            i = 0
                 else:
                     user_msg = (f"{self.activec[i][0]} ({self.activec[i][2]}) : {message}")
                     print(user_msg)
@@ -137,8 +153,8 @@ class Server:
     #function to send message to all clients connected to the server
     def send_Messages_to_all(self,message):#sachin
         print(message)
-        for user in self.activeClients:
-            self.send_message_to_client(user, message)           
+        for user in self.activec:
+            self.send_message_to_client(user[1], message)           
         #function to send message to a single client
     def send_message_to_client(self,client,message):#sachin
         client.sendall(bytes(message, 'utf-8'))
@@ -152,17 +168,27 @@ class Server:
             self.send_message_to_client(client1, "You are connected, You are X")
             self.send_message_to_client(client2, "You are connected, You are O")      
 
-    def process_move_human(self,client,message):
-        for session in self.game_session:
-            if client in session:
-                _, _, self.shared_board = session
-                _, row_str, col_str = message.split()
-                row, col = int(row_str), int(col_str)
-                player = 'X' if session.index(client) == 0 else 'O'
-                if  self.shared_board[row][col] == ' ':
-                    self.shared_board[row][col] = player
-                    self.update_game(session, f'Player {player} {row} {col}')
-                    break
+    def process_move_human(self,client,message,board):
+        if self.check_win(board, "X"):
+            client.sendall("X wins!".encode('utf-8'))
+            return  # Stop further processing as the game is over
+        elif self.check_win(board, "O"):
+            client.sendall("O wins!".encode('utf-8'))
+            return  # Stop further processing as the game is a tie
+        elif not any(' ' in row for row in board):
+            client.sendall("Tie game!".encode('utf-8'))
+            return  # Stop further processing as the game is a tie
+        else:
+            for session in self.game_session:
+                if client in session:
+                    _, _, self.shared_board = session
+                    _, row_str, col_str = message.split()
+                    row, col = int(row_str), int(col_str)
+                    player = 'X' if session.index(client) == 0 else 'O'
+                    if  self.shared_board[row][col] == ' ':
+                        self.shared_board[row][col] = player
+                        self.update_game(session, f'Player {player} {row} {col}')
+                        break
 
     def update_game(self,session,message):
         client1, client2, _ = session
@@ -261,7 +287,8 @@ class Server:
 
 
             self.activec.append((username, client, menu) )
-            self.activeClients.append(client)
+            if menu == "HUMAN":
+                self.activeClients.append(client)
   
             send_msg = f'{username} joined on {menu} Mode!'
 
@@ -273,19 +300,20 @@ class Server:
             self.send_Messages_to_all(current_activeUsers)
 
             time.sleep(1)
-            if menu == "COMPUTER":
+
+            self.send_Messages_to_all(send_msg)
+
+            time.sleep(0.1)
+
+            if menu =="COMPUTER":
                 self.board = self.create_brd()
                 self.internal_boards.append(self.board)
                 self.send_message_to_client(client,"You are connected, You are X")
-            time.sleep(0.1)
-            self.send_Messages_to_all(send_msg)
 
             break
             
         threading.Thread(target=self.listen_for_msg, args=(client,self.internal_boards)).start()
-            
 
 
-        
 #Calling Server class
 Server()
