@@ -10,7 +10,6 @@ import time
 
 #class def for Server
 class Server:
-    
     #Constructor for Server
     def __init__(self):
         
@@ -18,10 +17,9 @@ class Server:
         self.HOST = '127.0.0.1'
         self.PORT = 1234
         self.LIMIT = 20
-        self.activec = []
         self.activeClients = []
+        self.waitingUsers = []
         self.HEADERSIZE = 10
-        self.game_board = [[' ' for _ in range(3)] for _ in range(3)]
         self.internal_boards = []
         self.game_session = []
         #if user sends this hashed string it will exit program
@@ -56,7 +54,7 @@ class Server:
 
         #runs in an infinite while loop to keep on listening for messages sent by clients
         while True:
-            for user in self.activec:
+            for user in self.activeClients:
                 if user[1] == client:
                     print("found")
                     break
@@ -65,8 +63,8 @@ class Server:
                     break
                 i = i + 1
 
-            if self.activec[i][2] == "HUMAN":
-                self.pair_clients(self.activeClients)
+            if self.activeClients[i][2] == "HUMAN":
+                self.pair_clients(self.waitingUsers)
                 for session in self.game_session:
                     if client in session:
                         if self.check_win(session[2], "X"):
@@ -94,13 +92,13 @@ class Server:
                
                 if message == self.EXIT_STRING:
                         
-                        user_msg = (f"{self.activec[i][0]} ({self.activec[i][2]}) has disconnected!")
+                        user_msg = (f"{self.activeClients[i][0]} ({self.activeClients[i][2]}) has disconnected!")
                         self.send_Messages_to_all(user_msg)
-                        self.activec.pop(i)
-                        print(self.activec)
+                        self.activeClients.pop(i)
+                        print(self.activeClients)
                         current_activeUsers = ""
 
-                        for user in self.activec:
+                        for user in self.activeClients:
                             current_activeUsers = f'| {user[0]} |' + current_activeUsers
                         
                         self.send_Messages_to_all(current_activeUsers)
@@ -118,7 +116,7 @@ class Server:
                     full_msg = ''
                     i = 0
 
-                elif message.startswith("MOVE") and self.activec[i][2] == "COMPUTER":
+                elif message.startswith("MOVE") and self.activeClients[i][2] == "COMPUTER":
                     # Extract the row and column from the move message
                     print("Received move:", message)
                     _, row_str, col_str = message.split()
@@ -126,13 +124,13 @@ class Server:
                     col = int(col_str)
 
                     # Process the move
-                    self.process_move_computer(self.activec[i][1], row,col,self.internal_boards[i])
+                    self.process_move_computer(self.activeClients[i][1], row,col,self.internal_boards[i])
 
                     new_msg = True
                     full_msg = ''
                     i = 0
 
-                elif message.startswith("MOVE") and self.activec[i][2] == "HUMAN":
+                elif message.startswith("MOVE") and self.activeClients[i][2] == "HUMAN":
                     for session in self.game_session:
                         if client in session:
                             self.process_move_human(client,message, session[2])
@@ -141,7 +139,7 @@ class Server:
                             full_msg = ''
                             i = 0
                 else:
-                    user_msg = (f"{self.activec[i][0]} ({self.activec[i][2]}) : {message}")
+                    user_msg = (f"{self.activeClients[i][0]} ({self.activeClients[i][2]}) : {message}")
                     self.send_Messages_to_all(user_msg)
 
                 new_msg = True
@@ -243,7 +241,7 @@ class Server:
     #function to send message to all clients connected to the server
     def send_Messages_to_all(self,message):
         print(message)
-        for user in self.activec:
+        for user in self.activeClients:
             self.send_message_to_client(user[1], message)           
        
         #function to send message to a single client
@@ -298,15 +296,15 @@ class Server:
                 full_msg = ''
 
 
-            self.activec.append((username, client, menu) )
+            self.activeClients.append((username, client, menu) )
             if menu == "HUMAN":
-                self.activeClients.append(client)
+                self.waitingUsers.append(client)
   
             send_msg = f'{username} joined on {menu} Mode!'
 
 
             current_activeUsers = ""
-            for user in self.activec:
+            for user in self.activeClients:
                 current_activeUsers = f'| {user[0]} |' + current_activeUsers
 
             self.send_Messages_to_all(current_activeUsers)
