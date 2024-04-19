@@ -115,7 +115,7 @@ class Client:
         self.Leave_button.configure(state=tks.DISABLED)
         
         #creation of message box frame
-        self.messagebox_frame = tks.CTkFrame(self.root, )
+        self.messagebox_frame = tks.CTkFrame(self.root)
         self.messagebox_frame.grid(row=1, column=0,sticky=tks.NSEW )
 
         #creation of message box field where all the messages can be seen 
