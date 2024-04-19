@@ -1,3 +1,8 @@
+# Copyright (c) [2024] [Sachinandan Das Sen, Shamal Kurmar, Shivneel Narayan]
+# This file is part of [CS310-2024], which is released under the MIT License.
+# See LICENSE.md for details or visit https://opensource.org/licenses/MIT.
+
+
 #Import necessary library socket.io and threads
 import socket
 import threading
@@ -45,7 +50,6 @@ class Server:
           
     #listen_fro_msg_implentation
     def listen_for_msg(self, client, internal_board):
-
         full_msg = ''
         new_msg = True
         i = 0
@@ -60,13 +64,9 @@ class Server:
                     print('not found')
                     break
                 i = i + 1
-            
-            print(i)
 
             if self.activec[i][2] == "HUMAN":
                 self.pair_clients(self.activeClients)
-                
-                
                 for session in self.game_session:
                     if client in session:
                         if self.check_win(session[2], "X"):
@@ -84,14 +84,12 @@ class Server:
             message = client.recv(1024)
 
             if new_msg:
-                print(f"new message length: {message[:self.HEADERSIZE]}")
                 msglen = int(message[:self.HEADERSIZE])
                 new_msg = False
 
             full_msg += message.decode("utf=8")
 
             if len(full_msg) - self.HEADERSIZE == msglen:
-                print("Full message recvd")
                 message = full_msg[self.HEADERSIZE:]
                
                 if message == self.EXIT_STRING:
@@ -101,12 +99,16 @@ class Server:
                         self.activec.pop(i)
                         print(self.activec)
                         current_activeUsers = ""
+
                         for user in self.activec:
                             current_activeUsers = f'| {user[0]} |' + current_activeUsers
+                        
                         self.send_Messages_to_all(current_activeUsers)
+
                         new_msg = True
                         full_msg = ''
                         i = 0
+
                         return
                 
                 elif message == "RESET":
@@ -122,8 +124,10 @@ class Server:
                     _, row_str, col_str = message.split()
                     row = int(row_str)
                     col = int(col_str)
+
                     # Process the move
                     self.process_move_computer(self.activec[i][1], row,col,self.internal_boards[i])
+
                     new_msg = True
                     full_msg = ''
                     i = 0
@@ -132,13 +136,12 @@ class Server:
                     for session in self.game_session:
                         if client in session:
                             self.process_move_human(client,message, session[2])
-                            print(session[2])
+
                             new_msg = True
                             full_msg = ''
                             i = 0
                 else:
                     user_msg = (f"{self.activec[i][0]} ({self.activec[i][2]}) : {message}")
-                    print(user_msg)
                     self.send_Messages_to_all(user_msg)
 
                 new_msg = True
@@ -149,53 +152,8 @@ class Server:
                 print("The message sent from client {username} is empty")
                 break
         client.close() 
-
-    #function to send message to all clients connected to the server
-    def send_Messages_to_all(self,message):#sachin
-        print(message)
-        for user in self.activec:
-            self.send_message_to_client(user[1], message)           
-        #function to send message to a single client
-    def send_message_to_client(self,client,message):#sachin
-        client.sendall(bytes(message, 'utf-8'))
-
-    def pair_clients(self,activeClients):
-        if len(activeClients) >= 2:
-            client1 = activeClients.pop(0)
-            client2 = activeClients.pop(0)
-            self.shared_board = self.create_brd()
-            self.game_session.append((client1,client2,self.shared_board))
-            self.send_message_to_client(client1, "You are connected, You are X")
-            self.send_message_to_client(client2, "You are connected, You are O")      
-
-    def process_move_human(self,client,message,board):
-        if self.check_win(board, "X"):
-            client.sendall("X wins!".encode('utf-8'))
-            return  # Stop further processing as the game is over
-        elif self.check_win(board, "O"):
-            client.sendall("O wins!".encode('utf-8'))
-            return  # Stop further processing as the game is a tie
-        elif not any(' ' in row for row in board):
-            client.sendall("Tie game!".encode('utf-8'))
-            return  # Stop further processing as the game is a tie
-        else:
-            for session in self.game_session:
-                if client in session:
-                    _, _, self.shared_board = session
-                    _, row_str, col_str = message.split()
-                    row, col = int(row_str), int(col_str)
-                    player = 'X' if session.index(client) == 0 else 'O'
-                    if  self.shared_board[row][col] == ' ':
-                        self.shared_board[row][col] = player
-                        self.update_game(session, f'Player {player} {row} {col}')
-                        break
-
-    def update_game(self,session,message):
-        client1, client2, _ = session
-        for client in (client1,client2):
-            self.send_message_to_client(client,message)
-    
-    #processing the moves recieved from client
+   
+#---------------------------------------------------------------------------------
     
     def process_move_computer(self, client, row, col,board):
         # Check if the spot is already taken or not
@@ -227,6 +185,45 @@ class Server:
         else:
             client.sendall("Tie game!".encode('utf-8'))
 
+#---------------------------------------------------------------------------------
+
+    def process_move_human(self,client,message,board):
+        if self.check_win(board, "X"):
+            client.sendall("X wins!".encode('utf-8'))
+            return  # Stop further processing as the game is over
+        elif self.check_win(board, "O"):
+            client.sendall("O wins!".encode('utf-8'))
+            return  # Stop further processing as the game is a tie
+        elif not any(' ' in row for row in board):
+            client.sendall("Tie game!".encode('utf-8'))
+            return  # Stop further processing as the game is a tie
+        else:
+            for session in self.game_session:
+                if client in session:
+                    _, _, self.shared_board = session
+                    _, row_str, col_str = message.split()
+                    row, col = int(row_str), int(col_str)
+                    player = 'X' if session.index(client) == 0 else 'O'
+                    if  self.shared_board[row][col] == ' ':
+                        self.shared_board[row][col] = player
+                        self.update_game(session, f'Player {player} {row} {col}')
+                        break
+
+    def update_game(self,session,message):
+        client1, client2, _ = session
+        for client in (client1,client2):
+            self.send_message_to_client(client,message)
+
+    def pair_clients(self,activeClients):
+        if len(activeClients) >= 2:
+            client1 = activeClients.pop(0)
+            client2 = activeClients.pop(0)
+            self.shared_board = self.create_brd()
+            self.game_session.append((client1,client2,self.shared_board))
+            self.send_message_to_client(client1, "You are connected, You are X")
+            self.send_message_to_client(client2, "You are connected, You are O")   
+
+#---------------------------------------------------------------------------------
 
     def check_win(self, board, player):
         # Check horizontal, vertical and diagonal wins
@@ -236,10 +233,25 @@ class Server:
         if board[0][0] == board[1][1] == board[2][2] == player or board[0][2] == board[1][1] == board[2][0] == player:
             return True
         return False
-    #---------------------------------------------------------------------------------
+    
     def create_brd(self,):
         game_board = [[' ' for _ in range(3)] for _ in range(3)]
-        return game_board
+        return game_board   
+    
+#---------------------------------------------------------------------------------
+
+    #function to send message to all clients connected to the server
+    def send_Messages_to_all(self,message):
+        print(message)
+        for user in self.activec:
+            self.send_message_to_client(user[1], message)           
+       
+        #function to send message to a single client
+    def send_message_to_client(self,client,message):
+        client.sendall(bytes(message, 'utf-8'))
+
+#---------------------------------------------------------------------------------
+
     #Function to handle client
     def handle_client(self,client, ):
 

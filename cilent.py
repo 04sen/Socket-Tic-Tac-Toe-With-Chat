@@ -1,3 +1,7 @@
+# Copyright (c) [2024] [Sachinandan Das Sen, Shamal Kurmar, Shivneel Narayan]
+# This file is part of [CS310-2024], which is released under the MIT License.
+# See LICENSE.md for details or visit https://opensource.org/licenses/MIT.
+
 from tkinter import messagebox
 import customtkinter  # <- import the CustomTkinter module
 import socket
@@ -28,6 +32,8 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 class Game_window:
     def __init__(self):
         self.player_status = " " 
+        self.board = [["" for _ in range(3)] for _ in range(3)]
+
         self.gamewindow = customtkinter.CTkToplevel()
         self.gamewindow.geometry("850x600")
         self.gamewindow.title("TikTacToe- Welcome {0}".format(root.userName_entry.get()))
@@ -72,12 +78,14 @@ class Game_window:
         if root.menu.get() == "HUMAN":
             self.gamewindow.br.configure(state="disabled")
 
+        create_brd()
+        disable_all_buttons()
+        
         #starts a thread that listens from messages from server
         thread = threading.Thread(target=listen_for_messages_from_server, args=(self,client ))
         thread.start()
 
-        
-        self.board = [["" for _ in range(3)] for _ in range(3)]
+        #---------------------------------------------------------------------------------
 
         def button_click(row, col):
             global winner
@@ -91,6 +99,31 @@ class Game_window:
                 # Update the button text to the current player
                 buttons[row][col].configure(text=current_player)
                 send_move(row,col)
+        
+        def create_brd():
+            global buttons
+            buttons = []
+            for i in range(3):
+                row_buttons = []
+                for j in range(3):
+                    button = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ", font=("Helvetica",20),
+                                             height=100, width=100, hover_color=("gray70", "gray30"),
+                                             fg_color="transparent", command=lambda row=i, col=j: button_click(row, col),
+                                             border_width=3, border_spacing=13, border_color=("white", "white"))
+                    button.grid(row=i, column=j, padx=5, pady=5)
+                    row_buttons.append(button)
+                buttons.append(row_buttons)
+
+        def reset_brd():
+            reset_msg = "RESET"
+            reset_msg = f'{len(reset_msg):<{HEADERSIZE}}' + reset_msg
+            client.send(bytes(reset_msg,'utf-8'))
+            
+            create_brd()
+            self.board = [["" for _ in range(3)] for _ in range(3)]     
+        
+        #---------------------------------------------------------------------------------
+
         #send the move made by the user
         def send_move(row, col):
             # Convert row and column values to integers
@@ -111,26 +144,10 @@ class Game_window:
             message = f'{len(message):< {HEADERSIZE }}' + message
 
             # Encode and send the message to the server
-            client.send(bytes(message, 'utf-8'))  
+            client.send(bytes(message, 'utf-8')) 
 
-        def create_brd():
-            global buttons
-            buttons = []
-            for i in range(3):
-                row_buttons = []
-                for j in range(3):
-                    button = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ", font=("Helvetica",20),
-                                             height=100, width=100, hover_color=("gray70", "gray30"),
-                                             fg_color="transparent", command=lambda row=i, col=j: button_click(row, col),
-                                             border_width=3, border_spacing=13, border_color=("white", "white"))
-                    button.grid(row=i, column=j, padx=5, pady=5)
-                    row_buttons.append(button)
-                buttons.append(row_buttons)
-        
-        create_brd()
-        disable_all_buttons()
-
-                          
+        #---------------------------------------------------------------------------------
+                  
         def quit_game():
             disconnect(client)
             print('disconnected from server')
@@ -139,15 +156,7 @@ class Game_window:
 
             client.shutdown(socket.SHUT_RDWR)
             client.close()
-            
-        def reset_brd():
-            reset_msg = "RESET"
-            reset_msg = f'{len(reset_msg):<{HEADERSIZE}}' + reset_msg
-            client.send(bytes(reset_msg,'utf-8'))
-            
-            create_brd()
-            self.board = [["" for _ in range(3)] for _ in range(3)]          
-           
+                   
         def disconnect(client):
             root.username = root.userName_entry.get()
             exit_msg = EXIT_STRING
@@ -158,42 +167,16 @@ class Game_window:
             time.sleep(0.1)
             
             exit_msg = f'{len(exit_msg):<{HEADERSIZE}}' + exit_msg
-            client.send(bytes(exit_msg,'utf-8'))
+            client.send(bytes(exit_msg,'utf-8'))       
 
-            
+        #---------------------------------------------------------------------------------
 
-#function send_message sends the message to all other clients
-def send_message(self,client):
-    
-    #Gets message entered by the user
-    self.message = self.entry.get()
-    root.username = root.userName_entry.get()
-    
-    #checks if message is not empty
-    if self.message != '':
-        """root.username = f'{len(root.username):<{HEADERSIZE}}' + root.username
-        client.send(bytes(root.username,'utf-8'))
-
-        time.sleep(0.1)"""
-
-        self.message = f'{len(self.message):<{HEADERSIZE}}' + self.message
-        #sends message to all active clients 
-        client.send(bytes(self.message,'utf-8'))
-        
-        #deletes the message entered by the user in the message box
-        self.entry.delete(0, len(self.message))
-    
-    #checks if message is empty, then it will display a error message
-    else:
-        messagebox.showerror("Empty message", "Message cannot be empty")
-        self.entry.delete(0, customtkinter.END)
-        pass
-
+#---------------------------------------------------------------------------------
 
 def enter_game():
 
     username = root.userName_entry.get()
-    
+
 
     #if username empty then it will display error message to users
     if (username == ''):
@@ -204,9 +187,7 @@ def enter_game():
     else:
         connect(root) # <--  Connect to Server
         root.withdraw() # <-- Withdraw root window
-        c1=Game_window()
-        
-
+        c1=Game_window()        
 
 #function that is used to connect the client to the server
 def connect(self):
@@ -259,21 +240,6 @@ def connect(self):
         messagebox.showerror("Unable to connect to server", f"Unable to connect to server {self.HOST} {self.PORT}")
         root.mainloop()
 
-
-def highlight_winning_buttons(coords):
-    for row, col in coords:
-        buttons[row][col].configure(fg_color="green")
-        
-def disable_all_buttons():
-    for row in buttons:
-        for button in row:
-            button.configure(state="disabled")
-
-def enable_all_buttons():
-    for row in buttons:
-        for button in row:
-            button.configure(state="enabled")
-            
 # listens for message from all active clients
 def  listen_for_messages_from_server(self,client):
     #runs in an infinite loop to listen for messages
@@ -375,6 +341,30 @@ def  listen_for_messages_from_server(self,client):
                 add_message(self.gamewindow,message)
                 message = ''
 
+#---------------------------------------------------------------------------------
+
+#function send_message sends the message to all other clients
+def send_message(self,client):
+    
+    #Gets message entered by the user
+    self.message = self.entry.get()
+    root.username = root.userName_entry.get()
+    
+    #checks if message is not empty
+    if self.message != '':
+        self.message = f'{len(self.message):<{HEADERSIZE}}' + self.message
+        #sends message to all active clients 
+        client.send(bytes(self.message,'utf-8'))
+        
+        #deletes the message entered by the user in the message box
+        self.entry.delete(0, len(self.message))
+    
+    #checks if message is empty, then it will display a error message
+    else:
+        messagebox.showerror("Empty message", "Message cannot be empty")
+        self.entry.delete(0, customtkinter.END)
+        pass
+
 #adds message in message box
 def add_message(self,message):
     self.textbox.configure(state=customtkinter.NORMAL)
@@ -391,8 +381,23 @@ def add_onlineUser(self,message):
     self.onlineUser.configure(state=customtkinter.DISABLED)
     self.onlineUser.pack(side=customtkinter.RIGHT, padx=5 )
    
-def disable_reset_btn(self):
-    self.br.configure(state="disabled")
+#---------------------------------------------------------------------------------
+
+def highlight_winning_buttons(coords):
+    for row, col in coords:
+        buttons[row][col].configure(fg_color="green")
+        
+def disable_all_buttons():
+    for row in buttons:
+        for button in row:
+            button.configure(state="disabled")
+
+def enable_all_buttons():
+    for row in buttons:
+        for button in row:
+            button.configure(state="enabled")
+            
+#---------------------------------------------------------------------------------
 
 #creation of userFrame
 root.userName_frame = customtkinter.CTkFrame(root,)
