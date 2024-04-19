@@ -42,12 +42,12 @@ To install the application, follow these steps:
 1. **Clone the repository or download the source code:**
 
 ```bash
-git clone https://your-repository-url.git
+git clone https://github.com/04sen/CS310-2024.git
 ```
 2. **Navigate to the project directory**
 
 ```bash
-cd path-to-your-project
+cd CS310-2024
 
 (or any other method as per your system)
 ```
@@ -84,4 +84,4 @@ Contributions to the project are welcome. To contribute:
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
