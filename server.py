@@ -313,7 +313,7 @@ class Server:
 
             self.send_Messages_to_all(send_msg)
 
-            time.sleep(0.1)
+            time.sleep(1)
 
             if menu =="COMPUTER":
                 self.board = self.create_brd()
