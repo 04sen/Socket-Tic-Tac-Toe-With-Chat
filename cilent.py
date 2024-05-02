@@ -78,6 +78,21 @@ class Game_window:
         if root.menu.get() == "HUMAN":
             self.gamewindow.br.configure(state="disabled")
 
+        def create_brd():
+            global buttons
+            buttons = []
+            for i in range(3):
+                row_buttons = []
+                for j in range(3):
+                    button = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ", font=("Helvetica",20),
+                                             height=100, width=100, hover_color=("gray70", "gray30"),
+                                             fg_color="transparent", command=lambda row=i, col=j: button_click(row, col),
+                                             border_width=3, border_spacing=13, border_color=("white", "white"))
+                    button.grid(row=i, column=j, padx=5, pady=5)
+                    row_buttons.append(button)
+                buttons.append(row_buttons)
+
+        
         create_brd()
         disable_all_buttons()
         
@@ -99,20 +114,6 @@ class Game_window:
                 # Update the button text to the current player
                 buttons[row][col].configure(text=current_player)
                 send_move(row,col)
-        
-        def create_brd():
-            global buttons
-            buttons = []
-            for i in range(3):
-                row_buttons = []
-                for j in range(3):
-                    button = customtkinter.CTkButton(master=self.gamewindow.frame, text=" ", font=("Helvetica",20),
-                                             height=100, width=100, hover_color=("gray70", "gray30"),
-                                             fg_color="transparent", command=lambda row=i, col=j: button_click(row, col),
-                                             border_width=3, border_spacing=13, border_color=("white", "white"))
-                    button.grid(row=i, column=j, padx=5, pady=5)
-                    row_buttons.append(button)
-                buttons.append(row_buttons)
 
         def reset_brd():
             reset_msg = "RESET"
