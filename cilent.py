@@ -1,5 +1,5 @@
 # Copyright (c) [2024] [Sachinandan Das Sen, Shamal Kurmar, Shivneel Narayan]
-# This file is part of [CS310-2024], which is released under the MIT License.
+# This file is part of [Socket-Tic-Tac-Toe-With-Chat], which is released under the MIT License.
 # See LICENSE.md for details or visit https://opensource.org/licenses/MIT.
 
 from tkinter import messagebox
