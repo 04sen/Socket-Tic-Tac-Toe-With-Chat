@@ -1,5 +1,5 @@
 # Socket-Tic-Tac-Toe-With-Chat
-This is for Assignment 1 of CS310 offered by the University of the South Pacific. Dated: Semester 1, 2024.
+As part of my continued assessment during my study at the University of the South Pacific. Dated: April, 2024.
 
 ## Chat and Tic Tac Toe Application
 
