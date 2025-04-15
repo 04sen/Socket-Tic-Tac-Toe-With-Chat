@@ -42,12 +42,12 @@ To install the application, follow these steps:
 1. **Clone the repository or download the source code:**
 
 ```bash
-git clone https://github.com/04sen/CS310-2024.git
+git clone https://github.com/04sen/Socket-Tic-Tac-Toe-With-Chat.git
 ```
 2. **Navigate to the project directory**
 
 ```bash
-cd CS310-2024
+cd Socket-Tic-Tac-Toe-With-Chat
 
 (or any other method as per your system)
 ```
